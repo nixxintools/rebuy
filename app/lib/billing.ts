@@ -75,26 +75,38 @@ export async function billUser(userId: string, period = currentPeriod()): Promis
     return { ok: true, skipped: "already_billed" };
   }
 
-  const accrued = await accruedFees(userId, period);
-  if (accrued.fee <= 0) return { ok: true, skipped: "nothing_to_bill" };
+  let record = existing;
+  let amount: number;
 
-  const cap = Number(user.feeMandateCapUsd ?? DEFAULT_FEE_CAP_USD);
-  const amount = Math.min(accrued.fee, cap);
-  const reference = `${user.feeMandateId}:fee:${period}`;
+  if (record) {
+    // A record that isn't "paid" was interrupted — between the Prava call and
+    // our write, or by a decline. It must be retried on its ORIGINAL amount and
+    // reference: recomputing accruals here would find nothing, because this very
+    // record already claims those items, and the charge would be abandoned with
+    // the money possibly already taken.
+    amount = Number(record.amount);
+  } else {
+    const accrued = await accruedFees(userId, period);
+    if (accrued.fee <= 0) return { ok: true, skipped: "nothing_to_bill" };
 
-  const record =
-    existing ??
-    (await prisma.feeCharge.create({
+    const cap = Number(user.feeMandateCapUsd ?? DEFAULT_FEE_CAP_USD);
+    amount = Math.min(accrued.fee, cap);
+    record = await prisma.feeCharge.create({
       data: {
         userId,
         period,
         amount: new Prisma.Decimal(amount.toFixed(2)),
         savingsBase: new Prisma.Decimal(accrued.savings.toFixed(2)),
         itemIds: accrued.itemIds,
-        reference,
+        reference: `${user.feeMandateId}:fee:${period}`,
         status: "pending",
       },
-    }));
+    });
+  }
+
+  // Reuse the stored reference so Prava de-duplicates a retry rather than
+  // charging twice.
+  const reference = record.reference;
 
   try {
     // The same reference always maps to the same charge, so a retry after a

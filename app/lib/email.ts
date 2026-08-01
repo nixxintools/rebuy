@@ -6,6 +6,15 @@ export function emailConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
+/**
+ * Showing the sign-in link on screen lets anyone sign in as anyone, so it is
+ * never on by default. Set ALLOW_INSECURE_LOGIN=true only for a walkthrough on
+ * throwaway data, and remove it the moment real email delivery is configured.
+ */
+export function insecureLinkFallbackEnabled() {
+  return !emailConfigured() && process.env.ALLOW_INSECURE_LOGIN === "true";
+}
+
 export async function sendMagicLink(email: string, url: string) {
   if (!emailConfigured()) {
     console.log(`[rebuy] magic link for ${email}: ${url}`);

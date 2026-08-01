@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createLoginToken } from "@/lib/auth";
-import { sendMagicLink, emailConfigured } from "@/lib/email";
+import { sendMagicLink, emailConfigured, insecureLinkFallbackEnabled } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, delivered: true });
   }
 
+  if (!emailConfigured() && !insecureLinkFallbackEnabled()) {
+    return NextResponse.json(
+      { error: "Sign-in email isn't configured yet. Please try again shortly." },
+      { status: 503 }
+    );
+  }
+
   const { raw } = await createLoginToken(email);
   const url = `${process.env.APP_BASE_URL}/api/auth/callback?token=${raw}`;
   const result = await sendMagicLink(email, url);
@@ -41,7 +48,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     delivered: result.delivered,
-    // Only surfaced when no email provider is configured, so sign-in still works.
-    devUrl: emailConfigured() ? undefined : result.url,
+    // Deliberately opt-in only — see insecureLinkFallbackEnabled().
+    devUrl: insecureLinkFallbackEnabled() ? result.url : undefined,
   });
 }

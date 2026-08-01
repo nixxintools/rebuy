@@ -127,6 +127,34 @@ export async function listMandates(customerId: string) {
   return list as Array<Record<string, unknown>>;
 }
 
+export type MandateCharge = {
+  transactionId: string;
+  amount: string;
+  currency: string;
+  status: string;
+  reference: string | null;
+  createdAt: string;
+};
+
+export type MandateDetail = {
+  id: string;
+  status: string;
+  state: string;
+  merchantName: string;
+  approvedAmount: string;
+  remaining: string;
+  spent: string;
+  currency: string;
+  chargeCount: number;
+  validUntil: string;
+  createdAt: string;
+  charges: MandateCharge[];
+};
+
+export async function getMandate(id: string) {
+  return (await pravaFetch(`/v1/mandates/${id}`, { method: "GET" })) as unknown as MandateDetail;
+}
+
 export async function chargeMandate(
   mandateId: string,
   amount: string,

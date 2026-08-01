@@ -11,6 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import Link from "next/link";
@@ -34,6 +35,14 @@ export default function AppNav({ email }: { email: string }) {
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
           <Wordmark size={30} />
         </Link>
+        <Stack direction="row" spacing={0.5} sx={{ ml: { xs: 1, sm: 3 } }}>
+          <Button component={Link} href="/dashboard" sx={{ color: "text.secondary", px: 1.5 }}>
+            Purchases
+          </Button>
+          <Button component={Link} href="/payments" sx={{ color: "text.secondary", px: 1.5 }}>
+            Payments
+          </Button>
+        </Stack>
         <Box sx={{ flex: 1 }} />
         <Button
           component={Link}

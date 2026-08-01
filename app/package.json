@@ -9,6 +9,12 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
+    "@mui/material-nextjs": "^9.1.1",
     "@prisma/client": "^6.19.3",
     "next": "16.2.12",
     "openai": "^7.3.0",

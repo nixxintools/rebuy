@@ -1,13 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkPrice, executeRebuy } from "@/lib/agent";
+import { secretMatches } from "@/lib/auth";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 // Scheduled sweep: pulls each watched item's live merchant price and lets the
 // agent act. Also closes out items whose return window has passed.
-export async function GET() {
+// Vercel Cron sends `Authorization: Bearer $CRON_SECRET` automatically.
+export async function GET(req: NextRequest) {
+  const provided = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
+  if (!secretMatches(provided, process.env.CRON_SECRET)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const items = await prisma.trackedItem.findMany({
     where: { status: { in: ["monitoring", "drop_detected"] } },
   });

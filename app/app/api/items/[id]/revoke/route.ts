@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { loadOwnedItem } from "@/lib/owned";
 import { cancelMandate, PravaError } from "@/lib/prava";
 
 export const maxDuration = 30;
 
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const item = await prisma.trackedItem.findUnique({ where: { id } });
-  if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { item, response } = await loadOwnedItem(id);
+  if (!item) return response;
+
   if (item.mandateId) {
     try {
       await cancelMandate(item.mandateId, id);
     } catch (e) {
-      // Already consumed/cancelled mandates are fine to revoke locally.
+      // Already consumed or cancelled authorizations are fine to clear locally.
       if (!(e instanceof PravaError)) throw e;
     }
   }

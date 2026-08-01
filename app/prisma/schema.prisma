@@ -7,8 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  createdAt DateTime      @default(now())
+  items     TrackedItem[]
+  sessions  Session[]
+  tokens    LoginToken[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model LoginToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model TrackedItem {
   id              String       @id @default(cuid())
+  userId          String?
   userEmail       String
   merchantId      String       @default("anker")
   retailerName    String       @default("Anker")
@@ -30,8 +64,11 @@ model TrackedItem {
   sessionId       String?
   parseConfidence Json?
   createdAt       DateTime     @default(now())
+  user            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   prices          PricePoint[]
   events          AgentEvent[]
+
+  @@index([userId])
 }
 
 model PricePoint {

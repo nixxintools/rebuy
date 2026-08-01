@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { loadOwnedItem } from "@/lib/owned";
 import { createMandateSetupSession, PravaError } from "@/lib/prava";
+import { getMerchant } from "@/lib/merchants";
 
 export const maxDuration = 30;
 
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const item = await prisma.trackedItem.findUnique({ where: { id } });
-  if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { item, response } = await loadOwnedItem(id);
+  if (!item) return response;
+
   try {
-    const { getMerchant } = await import("@/lib/merchants");
     const merchant = getMerchant(item.merchantId);
     const session = await createMandateSetupSession({
       ...item,

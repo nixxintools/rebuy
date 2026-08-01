@@ -46,8 +46,8 @@ export default function MerchantsPage() {
             Some stores give you 21. Same purchase, wildly different odds.
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            {merchants.length} stores · every window read from the merchant&apos;s own policy page ·
-            last verified {merchants[0].policy.verifiedOn}
+            {`${merchants.length} stores`} · every window read from the merchant&apos;s own policy
+            page · last verified {merchants[0].policy.verifiedOn}
           </Typography>
         </Container>
       </Box>

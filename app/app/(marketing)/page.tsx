@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Card from "@mui/material/Card";
+import Divider from "@mui/material/Divider";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
@@ -19,6 +20,7 @@ import SavingsIcon from "@mui/icons-material/Savings";
 import Section from "@/components/Section";
 import { LinkButton } from "@/components/Links";
 import { GRADIENT } from "@/lib/theme";
+import { rankedByRecoverableWindow, canSpendAutonomously } from "@/lib/merchants";
 
 const PROBLEMS = [
   "Prices drop days after you buy — nobody tells you",
@@ -89,6 +91,16 @@ const AUDIENCE = [
     body: "Home goods and everyday essentials go on sale constantly. Small differences, but they stack up across a year.",
   },
 ];
+
+const RANKED = rankedByRecoverableWindow();
+const STORE_COUNT = RANKED.length;
+const SPENDABLE_COUNT = RANKED.filter(canSpendAutonomously).length;
+const TOP_STORES = RANKED.slice(0, 5).map((m) => ({
+  id: m.id,
+  name: m.name,
+  category: m.category,
+  days: m.policy.windowDays,
+}));
 
 export default function Landing() {
   return (
@@ -256,6 +268,41 @@ export default function Landing() {
             </Grid>
           ))}
         </Grid>
+      </Section>
+
+      {/* Merchant registry — the differentiator */}
+      <Section
+        id="stores"
+        tinted
+        eyebrow="Where you shop matters"
+        title="Some stores give your money 12x longer to come back"
+        subtitle="A return window is how long the price has to fall while you can still do something about it. We read every one from the store's own policy page."
+      >
+        <Card sx={{ maxWidth: 720, mx: "auto" }}>
+          <Stack divider={<Divider />}>
+            {TOP_STORES.map((m) => (
+              <Stack key={m.id} direction="row" spacing={2} sx={{ px: 3, py: 2, alignItems: "center" }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 600 }}>{m.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {m.category}
+                  </Typography>
+                </Box>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.15rem", whiteSpace: "nowrap" }}>
+                  {m.days} days
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Card>
+        <Box sx={{ textAlign: "center", mt: 4 }}>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            {STORE_COUNT} stores checked · {SPENDABLE_COUNT} where a return is genuinely possible
+          </Typography>
+          <LinkButton href="/merchants" variant="outlined" size="large">
+            See every store and its policy
+          </LinkButton>
+        </Box>
       </Section>
 
       {/* Audience */}

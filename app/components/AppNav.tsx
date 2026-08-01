@@ -15,11 +15,14 @@ import Stack from "@mui/material/Stack";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AddIcon from "@mui/icons-material/Add";
 import Link from "next/link";
-import { Wordmark } from "./Logo";
+import { usePathname } from "next/navigation";
+import { Logo, Wordmark } from "./Logo";
 import { GRADIENT } from "@/lib/theme";
 
 export default function AppNav({ email }: { email: string }) {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const pathname = usePathname();
+  const active = pathname.startsWith("/payments") ? "payments" : "dashboard";
 
   return (
     <AppBar
@@ -33,13 +36,37 @@ export default function AppNav({ email }: { email: string }) {
     >
       <Toolbar sx={{ maxWidth: 1000, width: "100%", mx: "auto", px: { xs: 2, md: 3 } }}>
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
-          <Wordmark size={30} />
+          {/* The wordmark costs width the nav needs on small screens. */}
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            <Wordmark size={30} />
+          </Box>
+          <Box sx={{ display: { xs: "flex", sm: "none" }, alignItems: "center" }}>
+            <Logo size={30} />
+          </Box>
         </Link>
-        <Stack direction="row" spacing={0.5} sx={{ ml: { xs: 1, sm: 3 } }}>
-          <Button component={Link} href="/dashboard" sx={{ color: "text.secondary", px: 1.5 }}>
+        <Stack direction="row" spacing={0.5} sx={{ ml: { xs: 1.5, sm: 3 } }}>
+          <Button
+            component={Link}
+            href="/dashboard"
+            sx={{
+              color: active === "dashboard" ? "primary.main" : "text.secondary",
+              fontWeight: active === "dashboard" ? 600 : 400,
+              px: { xs: 1, sm: 1.5 },
+              minWidth: 0,
+            }}
+          >
             Purchases
           </Button>
-          <Button component={Link} href="/payments" sx={{ color: "text.secondary", px: 1.5 }}>
+          <Button
+            component={Link}
+            href="/payments"
+            sx={{
+              color: active === "payments" ? "primary.main" : "text.secondary",
+              fontWeight: active === "payments" ? 600 : 400,
+              px: { xs: 1, sm: 1.5 },
+              minWidth: 0,
+            }}
+          >
             Payments
           </Button>
         </Stack>

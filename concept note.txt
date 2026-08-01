@@ -1,0 +1,630 @@
+# Product Requirements Document (PRD)
+
+## Return & Rebuy Agent
+
+
+## 1. Executive Summary
+
+**Product Name:** Return & Rebuy Agent (working title)
+
+**One-liner:** An AI agent that automatically detects post-purchase price drops, buys the item at the lower price, and orchestrates the return of the original purchase—capturing savings that consumers otherwise leave on the table.
+
+**The Insight:** Amazon and most major US retailers do not offer post-purchase price adjustments or direct refunds for price drops. The official workaround is a cumbersome two-step process: **return the original item, then repurchase it at the lower price**. Most consumers never do this because of the effort involved. Return & Rebuy Agent automates this entire workflow end-to-end.
+
+**Why People Pay:** Direct, measurable ROI. If the agent saves a user $30 on a price drop, taking a 15% cut ($4.50) is painless because the user would not have captured that savings otherwise.
+
+**Hackathon Fit:** Prava powers the critical "buy the new one" transaction. OpenAI handles receipt parsing. Visa Intelligent Commerce enables secure, conditional spending controls.
+
+
+## 2. Market Context & Opportunity
+
+### 2.1 The Return Market Is Massive
+
+- US retail returns reached **$849.9 billion** in 2025, representing 15.8% of all retail sales
+- **19.3% of online sales** are expected to be returned in 2025—roughly 1 in 5 online purchases
+- E-commerce accounted for 16.2% of total retail sales in Q1 2026, up from 15.3% in Q1 2025
+
+### 2.2 The Price Drop Problem
+
+- Amazon uses **dynamic pricing algorithms** that continuously adjust product costs based on market demand, competitor activity, and inventory levels
+- **Amazon does not offer price matching or direct refunds** for post-purchase price reductions
+- The only reliable workaround is the **"return and rebuy"** strategy
+- For sellers moving 1,000+ units monthly, even a **1% price drop can trigger 15-25% spikes in returns**
+
+### 2.3 The Consumer Behavior Gap
+
+- Most consumers **never** claim price drops due to the hassle of:
+  - Monitoring prices manually
+  - Initiating a return
+  - Repackaging and shipping the item
+  - Waiting for the refund
+  - Placing a new order
+- This creates a **clear arbitrage opportunity** for an automated agent
+
+
+## 3. Problem Definition
+
+### 3.1 The Core Problem
+
+Consumers overpay for items when prices drop after purchase. Retailers will not refund the difference directly. The only solution—returning and rebuying—requires too much effort for most people to bother.
+
+### 3.2 User Pain Points
+
+| Pain Point | Description |
+|------------|-------------|
+| **Missed savings** | Consumers lose money on price drops they never notice |
+| **Return friction** | Repackaging, printing labels, driving to UPS is a hassle |
+| **Upfront cash** | To rebuy at the lower price, you need to front the money before the refund hits |
+| **Timing anxiety** | Price drops must be caught within the return window (typically 30 days) |
+| **Forgetfulness** | Most people don't remember to check prices after purchase |
+
+
+## 4. User Personas
+
+### Primary: The Savvy Online Shopper
+
+- **Age:** 25–45
+- **Income:** $60k–$150k
+- **Behavior:** Buys 10+ items/month online; price-conscious but time-poor
+- **Pain:** Knows about the "return and rebuy" trick but never does it
+- **Value Proposition:** "Set it and forget it"—capture savings automatically
+
+### Secondary: The Gift Buyer
+
+- **Age:** 30–55
+- **Behavior:** Buys gifts in advance; prices often drop after purchase
+- **Pain:** Doesn't want to deal with returns after the gift has been given
+- **Value Proposition:** Agent handles the return before the gift is opened
+
+### Tertiary: The Small Business Owner
+
+- **Age:** 30–60
+- **Behavior:** Purchases office supplies, equipment, and inventory online
+- **Pain:** Price drops represent direct margin loss
+- **Value Proposition:** Automated savings at scale across many purchases
+
+
+## 5. Solution Overview
+
+### 5.1 High-Level Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER FLOW                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. USER FORWARDS RECEIPT                                       │
+│     └─> Email receipt → agent inbox                            │
+│     └─> OR upload screenshot/PDF                               │
+│                                                                 │
+│  2. AGENT EXTRACTS DATA (OpenAI)                               │
+│     └─> Order ID, SKU/ASIN, Purchase Price, Return Deadline   │
+│     └─> User confirms/corrects in dashboard                   │
+│                                                                 │
+│  3. AGENT MONITORS PRICE (Cron Job)                            │
+│     └─> Checks current price every 6 hours                    │
+│     └─> Compares to purchase price                            │
+│                                                                 │
+│  4. PRICE DROP DETECTED                                        │
+│     └─> IF Current_Price < Purchase_Price                     │
+│     └─> AND Today < Return_Deadline - 5 days                  │
+│                                                                 │
+│  5. AGENT EXECUTES "RETURN & REBUY"                            │
+│     ├─> a) Buys new item at lower price (PRAVA)              │
+│     ├─> b) Initiates return on original order (API/Form)     │
+│     └─> c) Notifies user with summary                         │
+│                                                                 │
+│  6. USER SHIPS OLD ITEM                                        │
+│     └─> Prints label, drops off package                       │
+│                                                                 │
+│  7. REFUND PROCESSED                                          │
+│     └─> Original payment refunded to user's card              │
+│     └─> Agent takes % cut of savings via Prava split         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 5.2 Key Differentiators
+
+| Feature | Return & Rebuy Agent | Competitors / Alternatives |
+|---------|---------------------|---------------------------|
+| **Automated rebuy** | ✅ Buys new item automatically | ❌ Only alerts, doesn't act |
+| **Return orchestration** | ✅ Initiates return with label | ❌ Manual process |
+| **End-to-end** | ✅ Complete workflow | ❌ Fragmented tools |
+| **Prava-powered** | ✅ Secure agentic payments | ❌ No agent-native payments |
+| **Savings capture** | ✅ Takes cut of actual savings | ❌ Subscription fee regardless |
+
+
+## 6. Detailed Functional Requirements
+
+### 6.1 Receipt Ingestion
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Email forwarding | P0 | Users forward order confirmation emails to a dedicated inbox |
+| Manual upload | P0 | Users can upload screenshots or PDFs via web dashboard |
+| Multi-retailer support | P1 | Amazon, Walmart, Target, Best Buy (MVP: Amazon only) |
+| Bulk import | P2 | Import multiple receipts at once |
+
+### 6.2 Data Extraction (OpenAI)
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Order ID extraction | P0 | Extract order number from email/text |
+| Product identification | P0 | Extract SKU, ASIN, or product name/URL |
+| Purchase price | P0 | Extract the amount paid |
+| Return deadline | P0 | Extract or calculate (purchase date + 30 days) |
+| User correction | P0 | Dashboard allows user to edit extracted data |
+| Confidence scoring | P1 | Show confidence level for each extracted field |
+
+### 6.3 Price Monitoring
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Scheduled checks | P0 | Check price every 6 hours via API/scraper |
+| Price comparison | P0 | Compare current price to purchase price |
+| Drop threshold | P0 | Only trigger on meaningful drops (>$1 or >2%) |
+| Return window buffer | P0 | Only trigger if >5 days remain in return window |
+| Multi-retailer comparison | P2 | Check price across multiple retailers |
+| Price history tracking | P2 | Store historical prices for analytics |
+
+### 6.4 Return & Rebuy Execution
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Rebuy with Prava | P0 | Complete new purchase at lower price using Prava SDK |
+| Return initiation | P0 | Automatically initiate return via retailer's portal |
+| Return label generation | P0 | Generate prepaid shipping label |
+| User notification | P0 | Notify user via email/SMS with summary |
+| Execution window | P0 | Execute within 24 hours of price drop detection |
+| Fallback on failure | P1 | Alert user if rebuy or return fails |
+
+### 6.5 User Dashboard
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Tracked items list | P0 | View all active tracked purchases |
+| Status indicators | P0 | Monitoring → Drop Detected → Rebuy Complete → Return Initiated → Refunded |
+| Savings summary | P0 | Total savings captured to date |
+| Manual trigger | P1 | User can manually trigger a price check |
+| Settings | P1 | Configure price drop threshold, notification preferences |
+
+### 6.6 Trust & Transparency
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Pre-approval | P0 | User must pre-authorize Prava for rebuy transactions |
+| Spending limits | P0 | User sets max auto-rebuy amount per transaction |
+| Notification before action | P0 | User receives notification before rebuy is executed |
+| Audit trail | P0 | Complete log of all actions taken |
+| Opt-out | P0 | User can cancel tracking at any time |
+
+### 6.7 Prava Integration
+
+| Requirement | Priority | Description |
+|-------------|----------|-------------|
+| Card tokenization | P0 | User connects card once; Prava generates tokenized credentials |
+| Scoped payment tokens | P0 | Tokens locked to specific merchant, amount, and expiry |
+| Biometric approval | P0 | Every purchase requires Face ID/fingerprint approval |
+| Checkout automation | P0 | Prava completes checkout on merchant site |
+| Split payment | P1 | Prava takes service fee from savings |
+| Webhook notifications | P1 | Real-time status updates via webhooks |
+
+**Prava SDK Options**:
+- **Backend:** Node.js, Python, Java
+- **Frontend:** JavaScript, React, React Native, Swift
+- **Sandbox:** Free tier with 3 end-to-end test runs
+
+
+## 7. Technical Architecture
+
+### 7.1 High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          ARCHITECTURE                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────┐    ┌─────────────┐    ┌──────────────────────────┐   │
+│  │   Frontend  │    │   Backend   │    │       External APIs      │   │
+│  │  (React)    │◄──►│  (Python/   │    │                          │   │
+│  │             │    │   Node.js)  │    │  ┌────────────────────┐  │   │
+│  └─────────────┘    └──────┬──────┘    │  │ OpenAI API         │  │   │
+│                           │            │  │ (receipt parsing)  │  │   │
+│                           │            │  └────────────────────┘  │   │
+│                           │            │                          │   │
+│                           │            │  ┌────────────────────┐  │   │
+│                           │            │  │ Prava SDK          │  │   │
+│                           │            │  │ (payments)         │  │   │
+│                           │            │  └────────────────────┘  │   │
+│                           │            │                          │   │
+│                           │            │  ┌────────────────────┐  │   │
+│                           │            │  │ Price API          │  │   │
+│                           │            │  │ (Apify / scraping) │  │   │
+│                           │            │  └────────────────────┘  │   │
+│                           │            │                          │   │
+│                           │            │  ┌────────────────────┐  │   │
+│                           │            │  │ Retailer APIs      │  │   │
+│                           │            │  │ (returns)          │  │   │
+│                           │            │  └────────────────────┘  │   │
+│                           │            │                          │   │
+│                           │            │  ┌────────────────────┐  │   │
+│                           │            │  │ Email/SMS         │  │   │
+│                           │            │  │ (notifications)   │  │   │
+│                           │            │  └────────────────────┘  │   │
+│                           │            │                          │   │
+│                           │            └──────────────────────────┘   │
+│                           │                                           │
+│                           ▼                                           │
+│                    ┌─────────────┐                                    │
+│                    │  Database   │                                    │
+│                    │(PostgreSQL) │                                    │
+│                    └─────────────┘                                    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 7.2 Data Model (Simplified)
+
+```sql
+-- Core tables
+users (id, email, name, prava_customer_id, created_at)
+tracked_items (id, user_id, retailer, order_id, product_name, sku, 
+               purchase_price, current_price, purchase_date, 
+               return_deadline, status, created_at)
+price_history (id, tracked_item_id, price, timestamp)
+transactions (id, user_id, tracked_item_id, type, amount, 
+              prava_transaction_id, status, created_at)
+notifications (id, user_id, type, message, sent_at, read_at)
+```
+
+### 7.3 Core Services
+
+| Service | Technology | Description |
+|---------|------------|-------------|
+| **Web App** | React + Tailwind | User dashboard |
+| **API Server** | Python (FastAPI) or Node.js | Core business logic |
+| **Worker** | Python + Celery/Redis | Cron jobs for price monitoring |
+| **Database** | PostgreSQL | User data, tracking, history |
+| **Queue** | Redis | Job queue for async tasks |
+| **Email** | SendGrid/Resend | Notifications |
+| **SMS** | Twilio | Critical alerts |
+
+### 7.4 Price Monitoring Implementation
+
+**Option A: Apify API (Recommended)**
+- Use Apify's Amazon Price Monitor API
+- Pricing: ~$0.35 per 1,000 results
+- Returns current price, availability, ratings
+- Simple REST API with Python/JavaScript clients
+
+**Option B: Direct Scraping**
+- Use Playwright/Puppeteer for headless browser
+- More fragile but no API cost
+- Risk of being blocked
+
+**Recommendation:** Start with Apify for reliability, fallback to scraping for non-Amazon retailers.
+
+### 7.5 Return Initiation Implementation
+
+**Option A: Retailer API (Where Available)**
+- Amazon: Use Amazon's Return API (Seller Central or MWS)
+- Best Buy, Target: Check for public return APIs
+
+**Option B: Browser Automation**
+- Use Playwright to simulate user login and return initiation
+- More fragile but works across all retailers
+
+**Option C: Email-Based Returns**
+- Some retailers accept return requests via email
+- Agent drafts and sends the email
+
+**Recommendation for MVP:** Browser automation with Playwright for Amazon guest checkout returns (no login required for some return types).
+
+
+## 8. Prava Integration Deep Dive
+
+### 8.1 Why Prava Is Essential
+
+Prava is not just a payment button—it is the **engine that enables the entire "rebuy" step**:
+
+| Requirement | Prava Feature |
+|-------------|---------------|
+| Secure card storage | Tokenized card credentials, never touches raw card data |
+| One-click checkout | Complete purchase without redirecting user |
+| Spend controls | Tokens scoped to specific merchant, amount, and expiry |
+| User approval | Biometric verification for every transaction |
+| PCI compliance | PCI DSS Level 2 certified |
+| Universal merchant coverage | Works with any merchant accepting Visa/Mastercard |
+
+### 8.2 Prava Integration Flow
+
+```python
+# Pseudo-code for Prava rebuy flow
+
+from prava import PravaClient
+
+# 1. User connects card once (stored as token)
+client = PravaClient(api_key=os.environ["PRAVA_API_KEY"])
+card_token = client.create_card_token(
+    user_id=user.id,
+    card_number="4111...",
+    expiry="12/26",
+    cvc="***"
+)
+
+# 2. When price drop detected, create scoped payment token
+payment_token = client.create_payment_token(
+    card_token=card_token,
+    merchant="amazon.com",
+    amount=new_price,
+    expiry=datetime.now() + timedelta(minutes=5),  # Single-use
+    description=f"Rebuy {product_name} at lower price"
+)
+
+# 3. Execute checkout with Prava's browser automation
+result = client.checkout(
+    payment_token=payment_token,
+    url=product_url,
+    shipping_address=user.address,
+    billing_address=user.billing_address
+)
+
+# 4. Webhook confirms completion
+# POST /webhook/prava
+# {
+#   "transaction_id": "txn_123",
+#   "status": "completed",
+#   "amount": 79.99,
+#   "merchant": "amazon.com"
+# }
+```
+
+### 8.3 Prava Sandbox Testing
+
+- Sign up at playground.prava.space
+- 3 free end-to-end test runs
+- Test card tokenization, payment generation, checkout automation, webhooks
+- Contact: support@prava.space for hackathon production access
+
+
+## 9. Track Eligibility
+
+### 9.1 Prava Overall Finalists
+- **Qualification:** Prava is the core transaction engine (not just a button)
+- **Evidence:** Working rebuy transaction completed via Prava SDK
+
+### 9.2 OpenAI Track
+- **Qualification:** GPT-4o for receipt parsing and data extraction
+- **Evidence:** Show receipt → structured data transformation with confidence scores
+
+### 9.3 Visa Intelligent Commerce Track
+- **Qualification:** Prava integration with Visa card network for secure agentic payments
+- **Evidence:** Scoped payment tokens, spend controls, biometric approval, transaction protections
+
+### 9.4 Localhost - Most Startup-Ready Product
+- **Qualification:** Clear problem, working product, monetization model
+- **Evidence:** User demand, distribution potential (target "Amazon price drop" communities)
+
+
+## 10. Monetization Model
+
+### 10.1 Recommended: Savings Share
+
+| Model | Description |
+|-------|-------------|
+| **Free tier** | Track 3 items/month |
+| **Paid tier** | $5/month unlimited tracking, OR 15% of captured savings |
+| **Per-transaction** | $1 per successful rebuy |
+
+**Rationale:** Users only pay when they save money. This aligns incentives and makes the value proposition undeniable.
+
+### 10.2 Sample Economics
+
+| Scenario | Purchase Price | New Price | Savings | Agent Fee (15%) |
+|----------|---------------|-----------|---------|-----------------|
+| Electronics | $200 | $170 | $30 | $4.50 |
+| Apparel | $80 | $60 | $20 | $3.00 |
+| Home goods | $150 | $130 | $20 | $3.00 |
+
+**Break-even:** User needs to save ~$33/year to justify a $5/month subscription. Most active online shoppers will save far more.
+
+
+## 11. User Experience Design
+
+### 11.1 Key Screens
+
+**Screen 1: Onboarding**
+- "Connect your card" (Prava tokenization)
+- "Forward your first receipt"
+- Simple 3-step tutorial
+
+**Screen 2: Dashboard**
+- List of tracked items with status badges
+- Total savings counter
+- Recent activity feed
+
+**Screen 3: Item Detail**
+- Product image, name, price history chart
+- Return deadline countdown
+- Status timeline
+
+**Screen 4: Notification (Email/SMS)**
+```
+Subject: 💰 Price Drop! We're saving you $30
+
+Hi [Name],
+
+The item you bought for $199.99 has dropped to $169.99!
+We're buying the new one now and initiating the return.
+
+✅ New purchase: $169.99 (via Prava)
+📦 Return label: [Download]
+📬 Ship by: July 25
+
+Estimated savings: $30.00
+Our fee: $4.50
+
+Reply STOP to cancel this action.
+```
+
+### 11.2 Notification Cadence
+
+| Event | Channel | Timing |
+|-------|---------|--------|
+| Price drop detected | Email + SMS | Immediate |
+| Rebuy completed | Email | Immediate |
+| Return initiated | Email | Immediate |
+| Refund received | Email | When processed |
+| Weekly summary | Email | Every Sunday |
+| Return deadline approaching | Email | 5 days before |
+
+
+## 12. Constraints & Limitations
+
+### 12.1 Technical Constraints
+
+| Constraint | Mitigation |
+|------------|------------|
+| **Amazon no longer offers formal price matching** | We use return-and-rebuy workaround, not price matching |
+| **Return window varies by category** (14–30 days) | Agent checks product-specific return policy |
+| **Item must be in new, unused condition** | User must not open/use item if they want to return it |
+| **Scraping can be blocked** | Use Apify API for reliability; fallback to browser automation |
+| **Prava production access is temporary** | Hackathon production access valid Aug 1–8 only |
+
+### 12.2 Product Constraints
+
+| Constraint | Mitigation |
+|------------|------------|
+| **MVP: Amazon only** | Target the largest e-commerce platform first |
+| **Guest checkout only** | Avoid 2FA/captcha issues with logged-in sessions |
+| **User must ship return** | Physical return still requires user action (print label, drop off) |
+| **Upfront cash required** | User must have available credit for rebuy before refund hits |
+
+### 12.3 Risk Mitigation
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Price scraping fails | Medium | High | Use Apify API + multiple fallback sources |
+| Return automation breaks | Medium | Medium | Alert user to complete return manually |
+| User doesn't ship return | Medium | Low | User keeps both items; no refund; agent still earns on rebuy |
+| Prava transaction fails | Low | High | Retry logic; alert user if persistent |
+| Retailer changes return policy | Low | High | Monitor policy changes; update automation |
+
+
+## 13. Development Roadmap (48-Hour Hackathon)
+
+### Phase 0: Pre-Hackathon (Before July 31)
+
+| Task | Owner | Effort |
+|------|-------|--------|
+| Set up Prava sandbox account | Team | 1 hr |
+| Test Prava SDK with dummy checkout | Team | 2 hrs |
+| Set up Apify API key and test price fetch | Team | 1 hr |
+| Design database schema | Team | 1 hr |
+| Create UI mockups | Team | 2 hrs |
+| Set up project repo | Team | 1 hr |
+
+### Phase 1: Core Infrastructure (Hours 0–12)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Backend API setup | P0 | FastAPI/Node.js with database connection |
+| User authentication | P0 | Email/password + Google OAuth |
+| Prava integration | P0 | Card tokenization + checkout flow |
+| Database models | P0 | Users, tracked_items, price_history, transactions |
+
+### Phase 2: Receipt Ingestion & Parsing (Hours 12–24)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Email forwarding setup | P0 | Incoming email webhook |
+| OpenAI receipt parsing | P0 | Extract order ID, product, price, date |
+| User correction UI | P0 | Dashboard to edit extracted data |
+| Manual upload | P1 | Upload screenshot/PDF |
+
+### Phase 3: Price Monitoring (Hours 24–36)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Cron job setup | P0 | Celery beat for 6-hour intervals |
+| Apify price fetch | P0 | Get current price for tracked items |
+| Price comparison logic | P0 | Detect meaningful drops |
+| Price history storage | P1 | Store historical prices |
+
+### Phase 4: Return & Rebuy Execution (Hours 36–44)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Rebuy with Prava | P0 | Complete new purchase at lower price |
+| Return initiation | P0 | Browser automation for return request |
+| Return label generation | P0 | Download and provide label to user |
+| Notification system | P0 | Email/SMS alerts |
+
+### Phase 5: Polish & Demo (Hours 44–48)
+
+| Task | Priority | Description |
+|------|----------|-------------|
+| Dashboard polish | P0 | Status indicators, savings counter |
+| Demo video recording | P0 | Walk through complete flow |
+| README & documentation | P0 | Setup instructions for judges |
+| Submission on Devfolio | P0 | Project page, video, repo link |
+
+
+## 14. Success Metrics
+
+### 14.1 Hackathon Judging Criteria
+
+| Criterion | How We'll Demonstrate |
+|-----------|----------------------|
+| **End-to-end functionality** | Live demo showing receipt → price drop → rebuy → return |
+| **Creativity and novelty** | Automating the "return and rebuy" workaround nobody else is doing |
+| **User value** | Clear savings calculation; users only pay when they save |
+| **Prava implementation** | Prava powers the rebuy transaction; not just a button |
+| **Track implementation** | OpenAI receipt parsing; Visa spend controls |
+| **Product experience** | Clean dashboard; clear notifications; trust signals |
+
+### 14.2 Product Metrics (Post-Hackathon)
+
+| Metric | Target |
+|--------|--------|
+| Successful price drop detections | >90% accuracy |
+| Successful rebuy completions | >95% via Prava |
+| User savings per tracked item | $15–50 average |
+| User retention | >50% after first savings event |
+| Referral rate | >20% (word of mouth) |
+
+
+## 15. Appendix
+
+### 15.1 Key Policy References
+
+- **Amazon Price Adjustment Policy:** Amazon does not offer price matching or direct refunds for post-purchase price reductions
+- **Amazon Return Window:** Standard 30 days from delivery; varies by category
+- **Return Condition:** Item must be in new, unused condition with original packaging
+- **"Return and Rebuy" Strategy:** The recognized procedure for addressing post-purchase price drops
+
+### 15.2 API References
+
+| API | Purpose | Documentation |
+|-----|---------|---------------|
+| **Prava SDK** | Agentic payments | playground.prava.space |
+| **OpenAI API** | Receipt parsing | platform.openai.com |
+| **Apify Price API** | Price monitoring | apify.com/gedli/amazon-intelligence-actor |
+| **SendGrid** | Email notifications | sendgrid.com |
+| **Twilio** | SMS notifications | twilio.com |
+
+### 15.3 Team & Support
+
+| Resource | Contact |
+|----------|---------|
+| **Prava Support** | support@prava.space |
+| **Prava Discord** | Support channel (recommended) |
+| **Hackathon Kickoff** | July 31, 7:00 PM PT |
+| **Submission Deadline** | August 2, 7:00 PM PT |
+
+---
+
+**Document Version:** 1.0
+**Last Updated:** July 2026
+**Status:** Ready for Development

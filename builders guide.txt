@@ -1,0 +1,383 @@
+Published using Google Docs
+Report abuseLearn more
+Agentic Commerce Hackathon Builder Handbook
+Updated automatically every 5 minutes
+AGENTIC COMMERCE HACKATHON  /  BUILDER HANDBOOK                                                                  X/ Twitter | Linkedin | Instagram|Devfolio 
+
+
+
+
+AUG 1-2, 2026
+
+Virtual
+
+1-4 BUILDERS
+
+Team size
+
+BY AUG 8
+
+Results announced
+
+JUL 31, 7 PM PT/
+AUG 1 7:30 AM IST
+
+Kickoff
+
+AUG 2,  7 PM PT/
+AUG 3 7:30 AM IST
+
+Submission deadline
+
+UP TO $73.5K
+
+Cash and credits
+
+HOW TO USE THIS HANDBOOK
+
+Start with the event brief and what makes a strong project.
+Choose your Prava integration, then review the tracks you want to enter.
+Use the merchant resources and rules while you build.
+Finish with the submission checklist, timeline and support routes.
+
+
+Where to get help
+Start with Birdie
+Birdie is Prava's support agent. It has the full context of Prava and can stay by your side while you build - from choosing an integration to working through implementation questions.
+
+Birdie is available on Telegram, but we recommend using it in the support channel on the Prava Discord. This keeps the question and context visible to the Prava team, allowing someone from the team to jump in when human help is needed.
+
+Discord: Required for announcements, office hours, team formation and technical support.
+Email: support+hackathon@prava.space (replies in under 30 mins)
+Devfolio: Overview | Prizes | Lineup | Schedule
+
+For issues involving any partner or sponsor, contact the Prava team first. We will connect you with the correct person and help move the issue forward.
+
+1. Start here
+What is the Agentic Commerce Hackathon?
+Most AI products stop after giving an answer. This hackathon is about what happens when an agent can finish the job.
+
+Over one focused weekend, build a working product in which an AI agent can discover options, make a decision and complete or enable a transaction using Prava. The product could shop across merchants, book travel, manage a subscription, procure software, reserve a table, automate a business payment or create a new commerce experience.
+
+We are looking for products and experiments that show what becomes possible when software can take action with money - safely, clearly and with a real purpose.
+
+What we expect you to build
+A working end-to-end experience, not only a concept, deck or collection of screens.
+A clear user and problem. The product should make sense without a long explanation.
+A meaningful Prava integration that enables the core commercial action.
+Original thinking. The RFH library is inspiration, not a list of ideas to copy.
+A product your team can explain, demonstrate and defend.
+Clear disclosure of anything that existed before the hackathon.
+A narrow product built extremely well can be stronger than a broad product with many unfinished features. Creative simulations and experiments are welcome when the hypothesis, execution and learning are clear.
+
+What qualifies as a strong project?
+A strong project combines five things:
+
+A real problem: Even if only a small group needs it, those users should care about the outcome.
+A complete action: The agent should do meaningful work and reach a visible result.
+An original insight: Show us a new workflow, interaction, market or experiment.
+Trust: Users should understand what the agent can do, what it may spend and what happened.
+Product quality: The experience, demo and story should feel coherent and usable.
+What will not stand out: a generic chat wrapper, a common RFH idea reproduced without new insight, a mocked payment presented as a transaction, or partner technology added only to qualify for a track.
+
+
+2. Judging
+What projects will be judged on
+End-to-end functionality: Does the core flow work from intent to result?
+Creativity and novelty: Is there an original idea, interaction or experiment?
+User value and market feasibility: Does this solve something people would use or pay for?
+Prava implementation: Is the transaction meaningful, reliable and central to the product?
+Track implementation: Does the partner technology materially improve the experience?
+Product experience: Is the product easy to understand, use and demonstrate?
+What happens next: Could the project continue as a product, startup or valuable experiment?
+Existing users, signups, transactions or interviews can strengthen a submission, but they are not required. Track winners must first meet the standard of a good hackathon project, then demonstrate a strong implementation of that track's technology.
+
+Judging panel
+Judge
+
+Role
+
+Manjot Pahwa
+
+Former Head of Stripe India; Premji Invest and Lightspeed
+
+Prof. Ramesh Raskar
+
+Founder, Project NANDA; Associate Professor, MIT Media Lab
+
+Justin Leung
+
+Principal, Agentic Commerce, Visa
+
+Vidit Gujrathi
+
+Chess Grandmaster; FIDE Olympiad gold medalist
+
+Harshit Marwah
+
+Startups, OpenAI
+
+Josh Flayhart
+
+Staff Engineer, Linq
+
+Ujwal Chaudhari
+
+Product, Visa
+
+Saroop Bharwani
+
+Co-founder and CEO, Senso
+
+   and more..
+
+
+The latest lineup is always available on the Devfolio lineup page.
+
+3. Building with Prava
+What is Prava?
+Prava enables AI agents to complete transactions safely. It gives builders agent-native and application-native ways to create payment sessions, control how money may be used and complete commercial workflows.
+
+Prava has official partnerships with card networks like Visa, Mastercard, Discover etc. Prava is backed by WTFund of Nikhil Kamath- India’s fintech billionaire & founder of largest stock broking platform- Zerodha.
+
+Every official hackathon submission must use Prava meaningfully.
+Quick links: Docs | Choosing Your Integration | Developer Dashboard | Website
+
+Choose the integration that fits your product
+If you are building...
+
+Start with...
+
+Why
+
+A product that needs a native, embedded payment experience
+
+SDK/API
+
+The most control over interface and payment flow, with more customization. Sandbox & Production available.
+Recommended for Hackathon.
+
+An agent that operates through chat or an agent framework
+
+MCP
+
+The fastest agent-native path with Prava tools available directly to the agent. Production Only.
+
+A terminal-based agent or fast technical prototype
+
+CLI
+
+A simple, reproducible way to test and demonstrate agent actions. Production Only.
+
+
+Prava SDK/API allows for more customization and thus, might be a great fit for most use-cases being built in the hackathon.
+
+What counts as a meaningful implementation?
+Prava enables a core action; it is not a payment button added at the end.
+The agent discovers, decides, authorizes, pays, purchases or completes a commercial workflow.
+The demo uses a working sandbox or test flow, not a mocked transaction.
+The user can understand what the agent is doing and whether it succeeded.
+If you claim an order was placed, show the completed checkout result. Creating a payment session alone is not a completed order.
+Your team can explain why it chose MCP, CLI, hosted API or SDK/API.
+Sandbox and production access
+Anyone can sign up through the Prava Developer Dashboard and start building in the sandbox. Stay in the sandbox until your complete flow works reliably end to end.
+
+Temporary hackathon production access: ALL Approved Participants have been sent an email from Prava Team on how to get promoted to production. The access is limited from August 1 through August 8, 2026. Access is not automatic. Contact the Prava team through the Discord support channel or at support@prava.space. We will review your product, use case, transaction flow and sandbox implementation before approving it.
+
+Prava cannot support restricted activities or merchant categories, including tobacco, gambling or betting, and other prohibited use cases. Projects involving restricted categories will not be moved to production.
+
+Any production access issued for the hackathon is temporary and will be revoked after August 8. To continue in production after the event, your team must complete Prava's normal KYB and production onboarding. Because we will already understand your project, participating teams may be able to complete that process faster. Review the production access checklist and environment documentation before requesting access.
+
+4. Tracks and rewards
+Every project must use Prava. To compete for a partner track, the partner technology must be a meaningful part of the product rather than an add-on.
+
+Reward overview
+Partner / award
+
+Published reward
+
+Prava finalists
+
+Up to $10,000 in Prava developer platform credits
+
+OpenAI
+
+$100 in credits for each approved participant, plus $10,000 for winners and finalists
+
+Visa Intelligent Commerce
+
+$5,000 cash
+
+Linq iMessage Agent
+
+$1,000 cash + $5,000 in Linq credits
+
+Localhost Startup-Ready Product
+
+$5,000 in Anthropic credits
+
+Project NANDA adapter
+
+$1,000 in OpenAI credits
+
+Senso Discovery and Trust
+
+$7,500 in Senso credits
+
+
+Published values and fulfillment remain subject to the rules and terms communicated by Prava and each partner. See the live Devfolio prize page.
+
+Prava - Overall finalists
+Build: The strongest agentic-commerce products across the hackathon.
+Qualify: Use Prava as a meaningful part of the core experience.
+We will look for: A working transaction, usefulness, originality, trust and potential beyond the event.
+Rewards: $10k in Prava Platform credits
+
+OpenAI
+Build: A product that uses OpenAI models or tools to create a materially better experience.
+Qualify: Use OpenAI APIs meaningfully in the product or demonstrate substantive use of Codex while building. The submission must still use Prava.
+We will look for: Useful model or Codex use, reliability and an implementation that is not present only for eligibility. Links: OpenAI API | Codex. Reward: $10,000 in credits to winners & $100 to each participant.
+
+CLAIM OPENAI CREDITS: If you have RSVP’d for the hackathon and haven’t applied for OPENAI credits, fill this form by 30th of July to get credits before the hackathon.
+[DEADLINE TO APPLY FOR THE OPENAI CREDITS HAS PASSED]
+NOTE: If you’ve already applied, you’ll get credits before the hackathon starts. 
+
+Visa - Best Visa Intelligent Commerce Implementation
+Visa Intelligent Commerce enables secure AI-initiated commerce with credentials, controls, authentication and transaction protections. Prava is an official Visa Intelligent Commerce partner.
+
+Build: A product where an AI agent completes a useful commercial action through Prava.
+Qualify: Integrate the transaction flow through Prava; Prava submissions are eligible for consideration.
+We will look for: Transaction completion, permissions, trust, controls and product usefulness.
+Reward: $5,000 cash. Visa Intelligent Commerce
+
+Linq - Best iMessage Agent
+Linq provides infrastructure for agents on iMessage, RCS and SMS.
+Build: A message-native agent that can complete or enable a commercial action.
+Qualify: Linq must be a core product interface, with Prava powering the transaction.
+We will look for: Message-native UX, usefulness, reliability and a working transaction.
+Reward: $1,000 cash + $5,000 in Linq credits. Linq | Docs
+
+FROM LINQ TEAM:
+Linq gives your agent a real phone number on iMessage — iMessage, RCS and SMS from one API, plus rich media, Find My location, effects, reactions, typing indicators, read receipts, and realtime webhooks on every event. The part most people don't know about: iMessage Apps, an interactive card that renders inside iMessage — a game board redraws after a move, an order flips from "Reserved" to "Confirmed" in the familiar blue bubble. And with Payments support, your agent can now buy things for you.
+
+To get started, follow these instructions:
+
+Go to https://linqapp.com/hackathon to learn more about Linq.
+Once you are ready, visit the Sandbox Signup page and select “Hackathon” in the “How did you hear about us?” dropdown.
+Make sure to apply our best practices instructions
+Let us know of any questions or if you run into any issues!
+Idea starter: iMessage Apps. Put your agent in a group chat and let one card carry an entire flow — a plan that mutates into an itinerary that mutates into a split-the-bill checkout, all in the same bubble. The best projects will treat messaging primitives as UI: a 👍 tapback is a vote, a typing indicator is a loading state, a group thread is your multiplayer lobby.
+
+
+Localhost - Most Startup-Ready Product
+Localhost supports founders and ambitious products at the earliest stage.
+
+Build: A product that can become something users continue to use after the event.
+Qualify: Ship a working product with meaningful Prava use.
+We will look for: Problem clarity, product readiness, user demand, distribution potential and founder commitment.
+Reward: $5,000 in Anthropic credits. Localhost
+
+Project NANDA - Best Prava Adapter for NANDA Town
+NANDA Town is a simulation environment for testing how agents interact and behave.
+
+Build: A reliable, reusable Prava payment adapter for NANDA Town. Strong submissions may also run simulations showing how agents behave when given money.
+Qualify: Demonstrate a sandbox transaction, handle failures, document the adapter and submit the relevant pull request and Devfolio project.
+We will look for: Reliability, transaction coverage, reuse, failure handling, documentation and simulation quality.
+Reward: $1,000 in OpenAI credits. Track details
+
+Senso - Agent Commerce Discovery and Trust
+Senso is a context layer that helps agents work with verified knowledge.
+
+Build: An agent that uses verified context to discover or choose a brand or merchant, then connects that decision to a Prava transaction.
+Qualify: Senso must materially influence the discovery or trust decision.
+We will look for: Source quality, traceability, relevance and the effect of Senso on the agent's decision. Reward: $7,500 in Senso credits. Senso Docs
+
+5. Finding merchants
+Use these resources to discover merchants with UCP, MCP or guest-checkout options:
+
+Composio MCP Gateway - a directory of official MCP servers.
+UCP Checker - many listed merchants may be compatible with Prava.
+E-commerce MCP servers - an e-commerce-focused MCP directory.
+Prava Merchant List - additional merchants, including some with MCP support.
+Important: These are discovery resources, not guarantees of compatibility. Not every merchant has been tested end to end, and merchant support can change. Research your merchant and validate the complete flow early. Keep a backup merchant or flow if your first choice is unreliable.
+
+
+6. Rules
+Teams may have 1-4 accepted participants. Only registered team members may contribute.
+Judged work must be completed during the official build window.
+You may build on an existing product, but you must disclose what existed before the event and what was built during it.
+Undisclosed pre-built work, plagiarism, hidden contributors, fake transactions, fabricated results or misleading demos may lead to disqualification.
+AI development tools are allowed and encouraged. Your team must still understand and explain the submission.
+Do not expose API keys, payment credentials or personal information in repositories or demos.
+Follow Devfolio rules, the Code of Conduct, partner terms and applicable laws.
+Judges may request a live demo, repository access, logs or transaction evidence.
+Contact the Prava team before escalating an issue to a partner. We will route it to the right person.
+7. Submission checklist
+Before submitting, make sure you have:
+
+A working demo and a short demo video.
+A repository or judge-access link.
+A clear explanation of the user, problem and product.
+A clear explanation of the Prava integration and the transaction outcome.
+The partner-track implementation and evidence, where applicable.
+A disclosure of pre-existing work and what was built during the hackathon.
+A short summary of what worked, what did not and what you learned.
+Your submission should make it easy for a judge to understand the product, run or watch the core flow and verify the integrations.
+
+How to submit on Devfolio
+Open your hackathon dashboard and select Add Project.
+Add your project name, tagline, problem, technologies used, links, demo video and screenshots. Your first screenshot becomes the cover image.
+Clearly mention Prava and any track-specific technology in Technologies Used.
+For teams, only the team admin can submit. Ensure every member has been added and completed the required RSVP/check-in.
+You may save the project as a draft, but it is submitted only after you select Publish Project and its status shows Submitted.
+Hard deadline: August 2 at 7:00 PM PT / August 3 at 7:30 AM IST.
+
+Read the complete Devfolio project-submission guide.
+
+8. Timeline and results
+When
+
+What happens
+
+Before the event
+
+Join Discord, review partner docs, choose your integration and test your merchant or sandbox
+
+July 29
+
+Final participant Q&A and team formation; details shared in Discord
+
+July 31, 7:00 PM PT/ 7:30 AM IST
+
+Online kickoff and build window opens
+
+August 1-2
+
+Core build days, workshops and support
+
+August 2, 7:00 PM PT/ 7:30 am IST
+
+Submission deadline shown on Devfolio
+
+By August 8
+
+Results announced
+
+Hackathon timings and hard deadline
+The hackathon begins at:
+
+Pacific Time (Los Angeles/San Francisco): July 31, 2026 at 7:00 PM PT
+India Standard Time: August 1, 2026 at 7:30 AM IST
+The hard submission deadline is:
+
+Pacific Time: August 2, 2026 at 3:00 PM PT
+India Standard Time: August 3, 2026 at 3:30 AM IST
+Please submit your project before this cutoff. These times are shown in PT and IST respectively. To view the complete schedule in your local time, visit the Devfolio schedule and select your timezone from the dropdown.
+
+Rewards and fulfillment
+Prava will communicate the final cash, credit and redemption details to winners. Many rewards are fulfilled directly by partners, and verification can mean they are not issued instantly. We will coordinate with the teams on the next steps after results are announced.
+
+
+
+ X/ Twitter | Linkedin | Instagram | Prava Support 
+

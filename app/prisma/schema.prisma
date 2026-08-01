@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TrackedItem {
+  id              String       @id @default(cuid())
+  userEmail       String
+  retailerName    String       @default("Amazon")
+  retailerUrl     String       @default("https://www.amazon.com")
+  orderId         String
+  productName     String
+  productUrl      String?
+  purchasePrice   Decimal      @db.Decimal(10, 2)
+  currentPrice    Decimal      @db.Decimal(10, 2)
+  rebuyPrice      Decimal?     @db.Decimal(10, 2)
+  purchaseDate    DateTime
+  returnDeadline  DateTime
+  status          String       @default("ingested")
+  mandateId       String?
+  sessionId       String?
+  parseConfidence Json?
+  createdAt       DateTime     @default(now())
+  prices          PricePoint[]
+  events          AgentEvent[]
+}
+
+model PricePoint {
+  id     String      @id @default(cuid())
+  itemId String
+  price  Decimal     @db.Decimal(10, 2)
+  source String      @default("simulated")
+  at     DateTime    @default(now())
+  item   TrackedItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model AgentEvent {
+  id     String      @id @default(cuid())
+  itemId String
+  type   String
+  detail Json?
+  at     DateTime    @default(now())
+  item   TrackedItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}

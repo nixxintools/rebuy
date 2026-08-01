@@ -115,6 +115,55 @@ export async function createMandateSetupSession(item: Item) {
   });
 }
 
+/**
+ * Standing authorization for our own service fee. Same primitive as a spend
+ * authorization — scoped to Rebuy as the merchant, capped, monthly, and
+ * revocable — so the user grants collection on exactly the terms they can see.
+ */
+export async function createFeeMandateSession(opts: {
+  userEmail: string;
+  capUsd: number;
+  months: number;
+  merchant: { name: string; url: string; countryCode: string };
+}) {
+  const validUntil = new Date(Date.now() + opts.months * 31 * 24 * 3600 * 1000);
+  return pravaFetch("/v1/sessions", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: opts.userEmail,
+      user_email: opts.userEmail,
+      total_amount: opts.capUsd.toFixed(2),
+      currency: "USD",
+      purchase_context: [
+        {
+          merchant_details: {
+            name: opts.merchant.name,
+            url: opts.merchant.url,
+            country_code_iso2: opts.merchant.countryCode,
+          },
+          product_details: [
+            {
+              description: "Rebuy service fee — 15% of savings you've banked",
+              unit_price: opts.capUsd.toFixed(2),
+              quantity: 1,
+            },
+          ],
+        },
+      ],
+      callback_url: `${process.env.APP_BASE_URL}/prava/fee-return`,
+      external_order_ref: `fee:${opts.userEmail}:${Date.now()}`,
+      description: "Authorize Rebuy to collect its share of savings you've banked",
+      mandate_setup: {
+        intent: "mandate_setup",
+        recurring_frequency: "monthly",
+        merchant_scope: "listed",
+        valid_until: validUntil.toISOString(),
+        max_charges: opts.months,
+      },
+    }),
+  });
+}
+
 export async function listMandates(customerId: string) {
   const body = await pravaFetch(
     `/v1/mandates?customer_id=${encodeURIComponent(customerId)}`,
@@ -159,11 +208,11 @@ export async function chargeMandate(
   mandateId: string,
   amount: string,
   reference: string,
-  itemId: string
+  itemId: string | null
 ) {
   return pravaFetch(`/v1/mandates/${mandateId}/charge`, {
     method: "POST",
-    itemId,
+    itemId: itemId ?? undefined,
     eventType: "mandate_charge",
     body: JSON.stringify({ amount, reference }),
   });
@@ -172,11 +221,11 @@ export async function chargeMandate(
 export async function reportCharge(
   mandateId: string,
   transactionId: string,
-  itemId: string
+  itemId: string | null
 ) {
   return pravaFetch(`/v1/mandates/${mandateId}/charges/${transactionId}/report`, {
     method: "POST",
-    itemId,
+    itemId: itemId ?? undefined,
     eventType: "charge_reported",
     body: JSON.stringify({ txn_status: "APPROVED", txn_type: "PURCHASE" }),
   });

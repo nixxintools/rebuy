@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/auth";
 import { getMandate, type MandateDetail } from "@/lib/prava";
 import { summariseSavings, statusMeta } from "@/lib/status";
+import { accruedFees, DEFAULT_FEE_CAP_USD } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -56,6 +57,10 @@ export async function GET() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const savings = summariseSavings(items);
+  const [accrued, feeHistory] = await Promise.all([
+    accruedFees(user.id),
+    prisma.feeCharge.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 12 }),
+  ]);
 
   // How much could actually be spent right now, and where.
   const activeAuthorizations = authorizations.filter((a) => a.live && a.mandate);
@@ -79,5 +84,18 @@ export async function GET() {
       anyUnreachable: authorizations.some((a) => a.unreachable),
     },
     totals: savings,
+    billing: {
+      authorized: Boolean(user.feeMandateId),
+      capUsd: user.feeMandateCapUsd ? Number(user.feeMandateCapUsd) : DEFAULT_FEE_CAP_USD,
+      expiresAt: user.feeMandateExpires,
+      accrued: { period: accrued.period, savings: accrued.savings, fee: accrued.fee },
+      history: feeHistory.map((f) => ({
+        period: f.period,
+        amount: Number(f.amount),
+        status: f.status,
+        transactionId: f.transactionId,
+        createdAt: f.createdAt,
+      })),
+    },
   });
 }

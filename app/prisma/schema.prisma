@@ -12,9 +12,35 @@ model User {
   email     String        @unique
   name      String?
   createdAt DateTime      @default(now())
-  items     TrackedItem[]
-  sessions  Session[]
-  tokens    LoginToken[]
+  /// Standing authorization that lets us collect our share of banked savings.
+  feeMandateId      String?
+  feeMandateCapUsd  Decimal?  @db.Decimal(10, 2)
+  feeMandateExpires DateTime?
+  items      TrackedItem[]
+  sessions   Session[]
+  tokens     LoginToken[]
+  feeCharges FeeCharge[]
+}
+
+/// One billing run per user per period. Fees accrue only on savings the user has
+/// actually banked, and are charged in arrears — never before the refund lands.
+model FeeCharge {
+  id            String   @id @default(cuid())
+  userId        String
+  /// e.g. "2026-08". The unique index is what makes re-running a period safe.
+  period        String
+  amount        Decimal  @db.Decimal(10, 2)
+  savingsBase   Decimal  @db.Decimal(10, 2)
+  itemIds       String[]
+  status        String   @default("pending")
+  transactionId String?
+  failureCode   String?
+  reference     String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+  @@index([userId])
 }
 
 model Session {

@@ -46,7 +46,16 @@ type Authorization = {
   } | null;
 };
 
+type Billing = {
+  authorized: boolean;
+  capUsd: number;
+  expiresAt: string | null;
+  accrued: { period: string; savings: number; fee: number };
+  history: { period: string; amount: number; status: string; transactionId: string | null }[];
+};
+
 type Payload = {
+  billing: Billing;
   authorizations: Authorization[];
   charges: Charge[];
   authority: {
@@ -67,6 +76,21 @@ export default function PaymentsPage() {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authorizing, setAuthorizing] = useState(false);
+
+  async function authorizeBilling() {
+    setAuthorizing(true);
+    try {
+      const r = await fetch("/api/billing/authorize", { method: "POST" });
+      const j = await r.json();
+      if (j.iframeUrl) window.location.href = j.iframeUrl;
+      else setError(j.error ?? "Could not start the authorization.");
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setAuthorizing(false);
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -213,7 +237,7 @@ export default function PaymentsPage() {
         </Card>
       )}
 
-      {/* Earnings */}
+      {/* Earnings and how we get paid */}
       <Card>
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
@@ -236,10 +260,68 @@ export default function PaymentsPage() {
               </Grid>
             ))}
           </Grid>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            We only take a share of savings you&apos;ve actually banked — after your refund lands.
-            Nothing is charged before that.
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            How we get paid
           </Typography>
+          {data.billing.authorized ? (
+            <>
+              <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                You&apos;ve authorized Rebuy to collect its share, capped at{" "}
+                <b>${data.billing.capUsd.toFixed(2)} a month</b>
+                {data.billing.expiresAt
+                  ? `, expiring ${new Date(data.billing.expiresAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`
+                  : ""}
+                . We charge once a month, in arrears, and only on savings you&apos;ve banked.
+              </Typography>
+              <Alert severity="info" sx={{ mt: 2 }}>
+                {data.billing.accrued.fee > 0 ? (
+                  <>
+                    ${data.billing.accrued.fee.toFixed(2)} will be charged for{" "}
+                    {data.billing.accrued.period}, on ${data.billing.accrued.savings.toFixed(2)} of
+                    banked savings.
+                  </>
+                ) : (
+                  <>Nothing to bill this month — you haven&apos;t banked any savings yet.</>
+                )}
+              </Alert>
+              {data.billing.history.length > 0 && (
+                <Stack divider={<Divider />} sx={{ mt: 2 }}>
+                  {data.billing.history.map((h) => (
+                    <Stack key={h.period} direction="row" spacing={2} sx={{ py: 1.25, alignItems: "center" }}>
+                      <Typography sx={{ flex: 1 }}>{h.period}</Typography>
+                      <Chip
+                        label={h.status}
+                        size="small"
+                        color={h.status === "paid" ? "success" : h.status === "failed" ? "error" : "default"}
+                        variant="outlined"
+                        sx={{ textTransform: "capitalize" }}
+                      />
+                      <Typography sx={{ fontWeight: 600 }}>${h.amount.toFixed(2)}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              )}
+            </>
+          ) : (
+            <>
+              <Typography color="text.secondary" sx={{ lineHeight: 1.7, mb: 2 }}>
+                Rebuy takes 15% of what it saves you — but only once your refund has landed and the
+                saving is real. Authorize collection the same way you authorize spending: once, with
+                a passkey, under a monthly ceiling you can revoke at any time.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={authorizeBilling}
+                disabled={authorizing}
+                sx={{ background: GRADIENT }}
+              >
+                {authorizing ? "Opening secure session…" : "Authorize fee collection"}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 

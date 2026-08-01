@@ -1,4 +1,15 @@
 {
-  "regions": ["iad1"],
-  "crons": [{ "path": "/api/cron/check-prices", "schedule": "0 6 * * *" }]
+  "regions": [
+    "iad1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/check-prices",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/bill",
+      "schedule": "0 7 1 * *"
+    }
+  ]
 }

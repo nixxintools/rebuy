@@ -22,6 +22,7 @@ function LoginCard() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [devUrl, setDevUrl] = useState<string | null>(null);
+  const [delivered, setDelivered] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
@@ -39,6 +40,7 @@ function LoginCard() {
       if (!r.ok) throw new Error(j.error ?? "Could not send the link.");
       setSent(true);
       setDevUrl(j.devUrl ?? null);
+      setDelivered(Boolean(j.delivered));
       setCooldown(30);
       const timer = setInterval(
         () => setCooldown((c) => (c <= 1 ? (clearInterval(timer), 0) : c - 1)),
@@ -46,6 +48,7 @@ function LoginCard() {
       );
     } catch (err) {
       setError((err as Error).message);
+      setSent(false);
     } finally {
       setSending(false);
     }
@@ -90,6 +93,11 @@ function LoginCard() {
               </Alert>
             )}
 
+            {!delivered && !devUrl && (
+              <Alert severity="warning" sx={{ width: "100%" }}>
+                We couldn&apos;t deliver the email. Check the address and try again.
+              </Alert>
+            )}
             <Button
               onClick={() => submit()}
               disabled={cooldown > 0 || sending}

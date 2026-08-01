@@ -1,90 +1,128 @@
 # PRD — Rebuy
 
 **Product:** Rebuy — an agent that captures post-purchase price drops
-**Event:** Prava Agentic Commerce Hackathon, Aug 1–2 2026 · Hard deadline Aug 2, 3:00 PM PT / Aug 3, 3:30 AM IST
+**Event:** Prava Agentic Commerce Hackathon · Hard deadline Aug 2, 3:00 PM PT / Aug 3, 3:30 AM IST
 **Live:** https://rebuy.upthink.app · **Repo:** https://github.com/nixxintools/rebuy
-**Version:** 3.0 — supersedes v2.0 and `concept note.txt`. Rewritten after the merchant research and the first working end-to-end run.
+**Version:** 4.0
 
 ---
 
 ## 1. One-liner
 
-You bought it. The price dropped. Rebuy notices, buys the cheaper one for you, and hands you the return — automatically, inside the return window.
+You bought it. The price dropped. Rebuy buys the cheaper one for you and walks you
+through returning the first — automatically, and only while you can still return it.
 
 ## 2. The problem
 
-Retailers don't refund price drops. The only remedy is "return and rebuy," which requires you to notice the drop, front the cash, start a return, and repackage the item. Almost nobody does it, so the savings evaporate. Roughly one in five online purchases is returned anyway; the machinery exists, people just won't drive it by hand.
+Retailers don't refund price drops. The only remedy is "return and rebuy," which needs
+you to notice the drop, front the cash, start a return, and repackage the item. Almost
+nobody does it, so the savings evaporate.
 
-## 3. What actually got built
+## 3. The insight the product is built on
 
-A working agent, live on a real domain, doing real work against real data:
+**A return window is not red tape. It is how long your money stays recoverable.**
 
-1. **Receipt in.** User pastes an order confirmation. GPT-4o extracts order number, price paid, purchase date, and return deadline, with per-field confidence — anything below 80% is flagged for the user to check.
-2. **Linked to a real product.** The parsed product name is matched against the merchant's **live catalogue**. The user confirms which product it is. This is what gives the monitor a real price to watch.
-3. **Authorized once.** The user approves a **Prava mandate** with a passkey: *this merchant only, at most what I originally paid, one charge, expires in 7 days.* The cap is enforced by the card network, not by our code.
-4. **Watched with live prices.** The agent reads the merchant's **actual current price** from its public product feed — on a schedule and on demand. No simulated price slider.
-5. **Acts alone.** When the live price falls at least $1 or 2% below what was paid, and more than 5 days remain in the return window, the agent charges the mandate without any further human input. That autonomy is the product.
-6. **Return handed back.** The user gets the savings breakdown and a direct route to return the original.
+Marine Layer gives a price 365 days to fall. Taylor Stitch gives it 21. Same purchase,
+wildly different odds of ever capturing a drop — and nobody shops that way, because
+nobody has ever presented return policy as an *asset* rather than a footnote.
 
-## 4. Merchants — the decision that changed the product
+That reframing is also what makes the product safe. The return window is not display
+text: it sets the spend authorization's expiry and gates every buy decision. Guess it
+long and the agent buys a replacement for something the user can no longer return,
+turning "saved you $40" into "cost you $160." So the same fact that makes the pitch
+interesting is the fact that has to be right.
 
-**v2 assumed Amazon. That was wrong, and it broke twice.**
+## 4. What actually got built
 
-Amazon has no agentic commerce surface — no UCP manifest, no MCP endpoint, no way for an agent to transact. Worse, when we passed `Amazon / amazon.com` as merchant details, Prava forwarded them to Visa and **card verification failed outright** ("we couldn't set up verification", OTP screen never rendered). Swapping to a real merchant fixed it immediately. Impersonating a merchant you have no relationship with does not work, and the hackathon rules treat a mocked transaction as grounds for disqualification.
+1. **Receipt in.** GPT-4o extracts order number, price paid, date and any stated return
+   deadline, with per-field confidence. Anything under 80% is flagged for review.
+2. **Linked to a real product and variant.** The user picks the exact product *and
+   variant* from the merchant's live catalogue — no auto-selection, because buying the
+   wrong size on the user's behalf is not a saving.
+3. **A deadline we can defend.** A date on the receipt wins. Otherwise we use that
+   merchant's verified published window. There is no global default.
+4. **Authorized once.** A Prava mandate approved with a passkey: this merchant only, at
+   most what you paid, one charge, expiring with the return window. The cap is enforced
+   by the card network, not by our code.
+5. **Watched with live prices** read from the merchant's own feed.
+6. **Acts alone.** On a qualifying drop with days still on the clock, the agent charges
+   the mandate with no further human input. That autonomy is the product.
+7. **Hands back an honest next step** (see §6).
 
-**v3 uses three US merchants that are genuinely agent-ready**, and they map cleanly onto the personas in the original concept note:
+## 5. Merchants — 67 stores, verified twice
 
-| Merchant | Category | Persona it serves |
-|---|---|---|
-| **Anker** (us.anker.com) | Electronics | Savvy online shopper — where price drops are largest and most frequent |
-| **Allbirds** (allbirds.com) | Apparel | Gift buyer |
-| **Brooklinen** (brooklinen.com) | Home goods | Small business / household buyer |
+Amazon was the original plan and could never have worked: it has no agentic commerce
+surface, and passing it as merchant details made Visa refuse card verification outright.
 
-All three are USD, US-based, and verified live on **UCP (Universal Commerce Protocol)** spec `2026-04-08`, each advertising `dev.ucp.shopping.checkout` and `dev.ucp.shopping.fulfillment` over MCP. Allbirds is on ucpchecker.com's verified merchant list. These are among the most agent-ready storefronts in US retail — which is exactly the bet this product makes.
+Every merchant is now checked on two axes:
 
-## 5. What is real, and what is not
+- **Price feed** — probed from our own US-region function. This caught a bug that would
+  have shipped: Shopify localises pricing by the *caller's* region, so probing from
+  India read an $88 Beyond Yoga polo as ₹8,600 while the store still reported USD.
+- **Return policy** — read from the merchant's own policy page, recording the window,
+  who pays, final-sale rules, the source URL and the verification date. Where a window
+  varies by category we store the shortest.
 
-Judges are explicitly warned about mocked transactions, so this boundary is stated plainly here and in the submission.
+Ranked by recoverable window at [/merchants](https://rebuy.upthink.app/merchants).
 
-**Real:**
-- Live product prices, read from each merchant's public product feed at request time.
-- Real price gaps — the demo item genuinely sells below what the receipt says was paid.
-- A real Prava sandbox mandate: created via API, approved with a real passkey and a real issuer OTP, verifiable through Prava's mandate endpoints.
-- A real autonomous charge attempt against that mandate, with the resulting card credential issued by Prava.
+**What the registry caught.** Brooklinen's storefront is largely "Last Call" — final
+sale, not returnable at any price. Tracking one was three clicks away, and the agent
+would have bought a replacement for something that could never be sent back. Final-sale
+items and zero-return merchants are now blocked from autonomous spending, with the
+reason shown. Brightland and Graza accept no returns at all and are watch-only.
 
-**Not real (and disclosed):**
-- **No order is placed at the merchant.** Prava mints a single-use card credential; completing a UCP checkout additionally requires publishing a signed agent profile, RFC 9421 request signing, and the merchant accepting that credential as a UCP payment handler. That is a merchant-side integration, not something buildable in a weekend.
-- **No return is filed.** We route the user to the merchant's returns flow with the reason pre-written. Automating retailer returns means logging in as the user through 2FA and CAPTCHA — out of scope and not something we should be doing on a user's behalf.
-- Sandbox only. Production needs Prava approval and additional verification; the only code difference is one environment variable.
+## 6. What is real, and what is not
 
-## 6. Trust model
+Judges are warned about mocked transactions, so the line is drawn explicitly.
 
-This is a product that spends money by itself, so the guardrails *are* the feature, not fine print. Four layers, all visible in the UI:
+**Real:** live merchant prices; genuine price gaps; a real Prava sandbox mandate approved
+with a real passkey and issuer OTP; a real autonomous charge producing a real single-use
+card credential, verifiable in Prava's own records.
 
-- **Merchant scope** — the mandate is locked to the one store.
-- **Spend cap** — never more than the original purchase price, enforced at the card network.
-- **Single charge, 7-day expiry** — the authorization dies on its own.
-- **Passkey** — one biometric approval to create it, revocable in one click at any time.
+**Not real, and never claimed:** **no order is placed at the merchant.** Prava issues a
+card credential; completing a UCP checkout additionally requires a published signed agent
+profile, RFC 9421 request signing, and the merchant accepting that credential as a
+payment handler. So the state after a successful charge is `purchase_authorized` — money
+reserved, card issued, *no order yet* — and the interface says exactly that, including
+"don't return the original until you've bought the replacement."
 
-Every external call the agent makes is written to an audit trail the user can read in plain English, with the raw payload one click away.
+An earlier version said "Repurchase complete" and offered "Open the new order" over a
+cart link. Someone who trusted that screen would have returned their only item and been
+left with nothing. That is the single most important thing this version fixes.
 
-## 7. Track fit
+## 7. Trust model
+
+The guardrails *are* the product, not fine print:
+
+- **Merchant scope** — locked to one store.
+- **Spend cap** — never more than the original price, enforced at the card network.
+- **Single charge, expiry tied to the return window.**
+- **Passkey** to create, one click to revoke — and revocation only reports success when
+  Prava confirms it, because telling someone their agent can't spend when it still can is
+  worse than reporting a failure.
+
+Every state is justified by evidence we hold. Savings count only once the user confirms
+the refund landed.
+
+## 8. How the business makes money
+
+15% of savings — collected, not asserted. A second Prava mandate scoped to Rebuy,
+approved by passkey with a monthly ceiling the user sets and can revoke. Fees accrue only
+on **banked** savings and are billed monthly in arrears, one charge per period, guarded
+against double-billing. The same rails that let the agent spend also collect our revenue,
+under caps the user controls.
+
+## 9. Track fit
 
 | Track | Claim |
 |---|---|
-| **Prava finalists** | The mandate is the product's trust model and the autonomous charge is the core action. Prava isn't a checkout button here — without standing authorization there is no agent. |
+| **Prava finalists** | Prava is load-bearing twice: the mandate is the trust model and the autonomous charge is the core action, and a second mandate collects our revenue. Without standing authorization there is no product. |
 | **OpenAI** | GPT-4o turns unstructured receipts into tracked purchases with confidence scoring and human correction. |
-| **Visa Intelligent Commerce** | The mandate maps directly onto Visa's controls story: scoped credential, network-enforced cap, expiry, revocation, biometric setup. All four surfaced in the interface. |
-| **Localhost (startup-ready)** | Aligned incentives — 15% of realised savings, nothing when nothing is saved. Obvious distribution into deal and price-tracking communities. |
-
-## 8. Monetization
-
-15% of captured savings, charged only on success. Free to track. A $20 drop returns $17 to the user and $3 to us. Nothing to lose by trying it, which is the whole growth argument.
-
-## 9. Open issue at time of writing
-
-The final Visa credential fetch fails inside Prava's sandbox: every mandate charge returns `FETCH_AGENTIC_CREDS_ERROR` / "Visa 400 — Fetching cryptogram failed", on a mandate that is otherwise active and healthy (`approvedAmount 59.99`, `remaining 59.99`, `chargeCount 0`). Reproduced on three attempts at both partial and exact amounts. Raised with Prava support. Everything up to and including the charge request works; this is the last mile and it is on the platform side.
+| **Visa Intelligent Commerce** | The mandate maps onto Visa's controls story exactly: scoped credential, network-enforced cap, expiry, revocation, biometric setup — all surfaced in the UI. |
+| **Senso (discovery & trust)** | Verified merchant context materially changes which merchants the agent will transact with. 67 policies with sources and dates decide where it may spend at all. |
+| **Localhost (startup-ready)** | Working billing, aligned incentives, a real distribution wedge in the merchant ranking. |
 
 ## 10. Disclosure
 
-Pre-existing before the build window: `concept note.txt` and this PRD's earlier drafts. All code written during the hackathon, with AI assistance (permitted and disclosed).
+Pre-existing before the build window: `concept note.txt` and earlier PRD drafts. All code
+written during the hackathon with AI assistance, disclosed and permitted.

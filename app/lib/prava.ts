@@ -63,6 +63,8 @@ type Item = {
   userEmail: string;
   retailerName: string;
   retailerUrl: string;
+  currency: string;
+  countryCode?: string;
   productName: string;
   purchasePrice: { toString(): string };
   returnDeadline: Date;
@@ -82,13 +84,13 @@ export async function createMandateSetupSession(item: Item) {
       user_id: item.userEmail,
       user_email: item.userEmail,
       total_amount: Number(item.purchasePrice.toString()).toFixed(2),
-      currency: "USD",
+      currency: item.currency,
       purchase_context: [
         {
           merchant_details: {
             name: item.retailerName,
             url: item.retailerUrl,
-            country_code_iso2: "US",
+            country_code_iso2: item.countryCode ?? "US",
           },
           product_details: [
             {

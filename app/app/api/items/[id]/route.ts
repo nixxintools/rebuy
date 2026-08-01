@@ -18,3 +18,12 @@ export async function GET(
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(item);
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  await prisma.trackedItem.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}

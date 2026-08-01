@@ -15,6 +15,8 @@ type ItemDetail = {
   returnDeadline: string;
   status: string;
   mandateId: string | null;
+  productUrl: string | null;
+  imageUrl: string | null;
   prices: { id: string; price: string; source: string; at: string }[];
   events: Ev[];
 };
@@ -35,7 +37,6 @@ const EVENT_COPY: Record<string, string> = {
 export default function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [item, setItem] = useState<ItemDetail | null>(null);
-  const [simPrice, setSimPrice] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -181,27 +182,31 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
         <Card muted>
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">Price watch</h2>
-            <span className="text-xs text-zinc-500">demo: simulated feed · payments are real sandbox</span>
+            <span className="text-xs text-zinc-500">
+              live from {item.retailerName} · checked automatically
+            </span>
           </div>
           <p className="mt-2 text-sm text-zinc-400">
-            The agent acts when the price falls ≥ $1 or 2%, with more than 5 days left to return.
+            The agent buys when the price falls at least $1 or 2% below what you paid, with more
+            than 5 days left to return.
           </p>
-          <div className="mt-4 flex gap-3">
-            <input
-              type="number"
-              step="0.01"
-              value={simPrice}
-              onChange={(e) => setSimPrice(e.target.value)}
-              placeholder={`Try ${(paid * 0.85).toFixed(2)}`}
-              className="w-44 rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm outline-none transition focus:border-emerald-500"
-            />
+          <div className="mt-4 flex items-center gap-4">
             <button
-              onClick={() => call(`/api/items/${item!.id}/price`, { price: Number(simPrice) })}
-              disabled={busy || !simPrice}
+              onClick={() => call(`/api/items/${item!.id}/price`)}
+              disabled={busy}
               className="rounded-full bg-zinc-100 px-5 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-40"
             >
-              {busy ? "Agent deciding…" : "Push price"}
+              {busy ? "Checking the store…" : "Check price now"}
             </button>
+            {item.productUrl && (
+              <a
+                href={item.productUrl}
+                target="_blank"
+                className="text-sm text-zinc-500 underline-offset-4 hover:text-zinc-300 hover:underline"
+              >
+                View on {item.retailerName}
+              </a>
+            )}
           </div>
         </Card>
       )}

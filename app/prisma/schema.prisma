@@ -10,11 +10,16 @@ datasource db {
 model TrackedItem {
   id              String       @id @default(cuid())
   userEmail       String
-  retailerName    String       @default("Amazon")
-  retailerUrl     String       @default("https://www.amazon.com")
+  merchantId      String       @default("anker")
+  retailerName    String       @default("Anker")
+  retailerUrl     String       @default("https://us.anker.com")
+  currency        String       @default("USD")
   orderId         String
   productName     String
   productUrl      String?
+  productHandle   String?
+  variantId       String?
+  imageUrl        String?
   purchasePrice   Decimal      @db.Decimal(10, 2)
   currentPrice    Decimal      @db.Decimal(10, 2)
   rebuyPrice      Decimal?     @db.Decimal(10, 2)
@@ -33,7 +38,7 @@ model PricePoint {
   id     String      @id @default(cuid())
   itemId String
   price  Decimal     @db.Decimal(10, 2)
-  source String      @default("simulated")
+  source String      @default("merchant_live")
   at     DateTime    @default(now())
   item   TrackedItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }

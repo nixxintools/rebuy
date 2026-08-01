@@ -12,7 +12,12 @@ export async function POST(
   const item = await prisma.trackedItem.findUnique({ where: { id } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   try {
-    const session = await createMandateSetupSession(item);
+    const { getMerchant } = await import("@/lib/merchants");
+    const merchant = getMerchant(item.merchantId);
+    const session = await createMandateSetupSession({
+      ...item,
+      countryCode: merchant.countryCode,
+    });
     await prisma.trackedItem.update({
       where: { id },
       data: { sessionId: session.session_id as string, status: "authorizing" },

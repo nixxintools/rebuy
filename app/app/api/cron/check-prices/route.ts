@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { dropTriggered, executeRebuy } from "@/lib/agent";
+import { checkPrice, executeRebuy } from "@/lib/agent";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-// Hourly sweep: re-evaluates monitored items against their latest price and
-// expires items whose return window closed.
+// Scheduled sweep: pulls each watched item's live merchant price and lets the
+// agent act. Also closes out items whose return window has passed.
 export async function GET() {
   const items = await prisma.trackedItem.findMany({
     where: { status: { in: ["monitoring", "drop_detected"] } },
@@ -21,20 +21,14 @@ export async function GET() {
       results.push({ id: item.id, action: "expired" });
       continue;
     }
-    if (
-      item.status === "drop_detected" ||
-      dropTriggered(Number(item.purchasePrice), Number(item.currentPrice), item.returnDeadline)
-    ) {
-      if (item.status === "monitoring") {
-        await prisma.trackedItem.update({
-          where: { id: item.id },
-          data: { status: "drop_detected" },
-        });
-      }
-      const r = await executeRebuy(item.id);
-      results.push({ id: item.id, action: "execute", result: r });
-    } else {
-      results.push({ id: item.id, action: "none" });
+    try {
+      const r =
+        item.status === "drop_detected"
+          ? await executeRebuy(item.id)
+          : await checkPrice(item.id);
+      results.push({ id: item.id, action: "checked", result: r });
+    } catch (e) {
+      results.push({ id: item.id, action: "error", error: (e as Error).message });
     }
   }
   return NextResponse.json({ checked: items.length, results });

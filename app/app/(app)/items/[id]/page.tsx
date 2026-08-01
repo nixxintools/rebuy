@@ -1,5 +1,5 @@
 "use client";
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -107,6 +107,19 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // The scheduled sweep runs daily, so an open page is the other moment we can
+  // honestly claim to be watching. Only re-checks when the last check is stale,
+  // and only while the user has actually authorized spending.
+  const staleCheck = useRef(false);
+  useEffect(() => {
+    if (!item || staleCheck.current) return;
+    if (item.status !== STATUS.monitoring) return;
+    const age = item.lastCheckedAt ? Date.now() - new Date(item.lastCheckedAt).getTime() : Infinity;
+    if (age < 6 * 3600 * 1000) return;
+    staleCheck.current = true;
+    fetch(`/api/items/${id}/price`, { method: "POST" }).then(() => refresh()).catch(() => {});
+  }, [item, id, refresh]);
 
   if (loadError) {
     return (

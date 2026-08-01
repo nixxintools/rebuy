@@ -2,7 +2,7 @@
 // against an active Prava mandate.
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
-import { chargeMandate, reportCharge, PravaError } from "./prava";
+import { chargeMandate, reportCharge, getMandate, PravaError } from "./prava";
 import { fetchProduct } from "./merchants";
 
 const MIN_DROP_DOLLARS = 1;
@@ -65,6 +65,33 @@ export async function executeRebuy(itemId: string) {
   const item = await prisma.trackedItem.findUniqueOrThrow({ where: { id: itemId } });
   if (item.status !== "drop_detected" || !item.mandateId) return null;
   const amount = Number(item.currentPrice).toFixed(2);
+
+  // Never spend against an authorization that isn't the one shown to the user.
+  // Prava enforces merchant scope and the ceiling too, but a mismatch here means
+  // our own UI is describing guardrails the user never granted — so refuse, and
+  // say so, rather than letting the network produce a confusing decline.
+  const authority = await getMandate(item.mandateId);
+  const merchantMatches =
+    String(authority.merchantName ?? "").toLowerCase() === item.retailerName.toLowerCase();
+  const ceilingCoversCharge = Number(authority.approvedAmount) >= Number(amount);
+  if (!merchantMatches || !ceilingCoversCharge) {
+    await prisma.trackedItem.update({ where: { id: itemId }, data: { status: "ingested", mandateId: null } });
+    await prisma.agentEvent.create({
+      data: {
+        itemId,
+        type: "authorization_mismatch",
+        detail: {
+          reason: !merchantMatches ? "merchant_scope" : "ceiling_too_low",
+          expectedMerchant: item.retailerName,
+          authorizedMerchant: authority.merchantName,
+          authorizedCeiling: authority.approvedAmount,
+          attemptedAmount: amount,
+        },
+      },
+    });
+    return { ok: false, code: "AUTHORIZATION_MISMATCH" };
+  }
+
   // Idempotent per attempt: a resumed run reuses the reference and de-duplicates,
   // while a genuinely failed attempt can still be retried under a new one.
   const attempts = await prisma.agentEvent.count({

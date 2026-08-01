@@ -31,9 +31,9 @@ const PROBLEMS = [
 
 const SOLUTIONS = [
   "It watches the store's real price for you",
-  "It rebuys the moment the price drops",
-  "Your return comes prepped, with a ship-by date",
-  "You keep the difference",
+  "It funds the cheaper replacement the moment the price drops",
+  "You finish checkout and send the original back, with the deadline tracked",
+  "You keep the difference, after return costs",
 ];
 
 const STEPS = [
@@ -45,12 +45,12 @@ const STEPS = [
   {
     n: 2,
     title: "Turn it on",
-    body: "One tap and it starts working. You set the ceiling — it can never spend more than you already paid.",
+    body: "One approval with your fingerprint. You set the ceiling — it can never spend more than you already paid, and you can revoke it any time.",
   },
   {
     n: 3,
-    title: "It captures the drop",
-    body: "The price falls, Rebuy buys the cheaper one and hands you the return. You pocket the difference.",
+    title: "It funds the drop",
+    body: "The price falls and Rebuy reserves the money on a single-use card. You complete checkout, send the original back, and keep the difference.",
   },
 ];
 
@@ -67,8 +67,8 @@ const FEATURES = [
   },
   {
     icon: <BoltIcon />,
-    title: "Acts inside your window",
-    body: "It only buys while you can still return the original — using that store’s real return policy, not a guess.",
+    title: "Only acts when you'd actually gain",
+    body: "It weighs the drop against what that store charges to return, using their real policy — and stays out if you’d end up worse off.",
   },
   {
     icon: <SavingsIcon />,
@@ -138,8 +138,8 @@ export default function Landing() {
             sx={{ mt: 3, fontSize: "1.15rem", maxWidth: 620, mx: "auto", lineHeight: 1.7 }}
           >
             Prices fall after you buy, and stores won&apos;t refund the gap. Rebuy watches what you
-            paid, buys the cheaper one while you can still return the first, and hands you back the
-            difference.
+            paid and, when it drops far enough to be worth it, reserves the money for the cheaper
+            one while you can still return the first.
           </Typography>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ justifyContent: "center", mt: 5 }}>
             <LinkButton href="/login" variant="contained" size="large" sx={{ background: GRADIENT }}>
@@ -341,8 +341,8 @@ export default function Landing() {
             Stop leaving money with the store
           </Typography>
           <Typography sx={{ mt: 2, fontSize: "1.1rem", opacity: 0.92, maxWidth: 560, mx: "auto" }}>
-            Track your first purchase in under a minute. If Rebuy never saves you anything, it never
-            costs you anything.
+            Track your first purchase in under a minute. We take 15% only of savings you&apos;ve
+            actually banked — never before your refund lands.
           </Typography>
           <LinkButton
             href="/login"

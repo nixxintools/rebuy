@@ -11,6 +11,8 @@ import {
   resolveReturnDeadline,
   detectFinalSale,
   MerchantUnavailableError,
+  VariantUnavailableError,
+  estimatedReturnCost,
 } from "@/lib/merchants";
 import { STATUS } from "@/lib/status";
 
@@ -60,11 +62,15 @@ export async function POST(req: NextRequest) {
   try {
     product = await fetchProduct(merchant.id, b.productHandle, b.variantId ?? undefined);
   } catch (e) {
+    if (e instanceof VariantUnavailableError) {
+      return NextResponse.json({ error: e.message }, { status: 409 });
+    }
     if (e instanceof MerchantUnavailableError) {
       return NextResponse.json({ error: e.message }, { status: 502 });
     }
     throw e;
   }
+  const returnCost = estimatedReturnCost(merchant);
 
   // Something that can't be returned must never be rebought on the user's behalf.
   const finalSale = detectFinalSale(product);
@@ -100,6 +106,7 @@ export async function POST(req: NextRequest) {
       purchaseDate,
       returnDeadline: deadline,
       returnWindowSource: source,
+      returnCostUsd: new Prisma.Decimal(returnCost.toFixed(2)),
       lastCheckedAt: new Date(),
       status: spendable ? STATUS.ingested : STATUS.watchOnly,
       parseConfidence: b.confidence ?? undefined,
@@ -115,6 +122,7 @@ export async function POST(req: NextRequest) {
             variant: product.variantTitle,
             returnWindowDays: merchant.policy.windowDays,
             returnWindowSource: source,
+            returnCostUsd: returnCost,
             spendable,
             blockedReason: finalSale ?? whyNotSpendable(merchant),
           },

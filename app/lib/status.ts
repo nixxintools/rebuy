@@ -179,15 +179,26 @@ type SavingsItem = {
   status: string;
   purchasePrice: unknown;
   rebuyPrice: unknown;
+  returnCostUsd?: unknown;
 };
+
+/**
+ * What the user is actually up. The price gap alone overstates it — sending the
+ * original back costs real money at most merchants, and billing a share of a
+ * gross "saving" that nets out negative would take money for a loss.
+ */
+export function netSaving(i: SavingsItem): number {
+  if (i.rebuyPrice == null) return 0;
+  const gross = Number(i.purchasePrice) - Number(i.rebuyPrice);
+  return round(gross - Number(i.returnCostUsd ?? 0));
+}
 
 /**
  * Single source of truth for savings. Three separate copies of this arithmetic
  * previously disagreed about when a saving counted.
  */
 export function summariseSavings(items: SavingsItem[]): SavingsBreakdown {
-  const gap = (i: SavingsItem) =>
-    i.rebuyPrice != null ? Number(i.purchasePrice) - Number(i.rebuyPrice) : 0;
+  const gap = netSaving;
 
   const realized = items
     .filter((i) => REALIZED_SAVINGS_STATUSES.includes(i.status as never))

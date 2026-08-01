@@ -73,7 +73,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       );
     }
   } catch {
-    // Read-back failed; the cancel call itself succeeded, so accept it but say so.
+    // We could not read the mandate back. The cancel call returning 200 is not
+    // proof it took effect, and claiming spending power is gone when it may not
+    // be is the worse error — so stay unresolved.
+    const pending = await prisma.trackedItem.update({
+      where: { id },
+      data: { status: STATUS.revocationPending, failureCode: "REVOKE_UNVERIFIED" },
+    });
+    return NextResponse.json(
+      {
+        ...pending,
+        error:
+          "We asked Prava to cancel it but couldn't confirm. Assume the agent can still spend and try again.",
+      },
+      { status: 502 }
+    );
   }
 
   const updated = await prisma.trackedItem.update({

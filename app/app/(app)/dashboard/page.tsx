@@ -15,14 +15,14 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import StatusChip from "@/components/StatusChip";
 import { GRADIENT } from "@/lib/theme";
-import { summariseSavings, statusMeta, PENDING_SAVINGS_STATUSES } from "@/lib/status";
+import { summariseSavings, statusMeta, netSaving, PENDING_SAVINGS_STATUSES } from "@/lib/status";
 
 export const dynamic = "force-dynamic";
 
 const STEPS = [
   "Paste an order confirmation — we read it for you",
   "Approve the agent once, with a ceiling you set",
-  "It buys on a price drop and walks you through the return",
+  "It funds the cheaper replacement on a drop; you finish checkout and return the original",
 ];
 
 export default async function Dashboard() {
@@ -99,7 +99,7 @@ export default async function Dashboard() {
           <List disablePadding>
             {items.map((i, idx) => {
               const meta = statusMeta(i.status);
-              const gap = i.rebuyPrice ? Number(i.purchasePrice) - Number(i.rebuyPrice) : 0;
+              const gap = netSaving(i);
               const banked = i.status === "refund_confirmed";
               const inFlight = PENDING_SAVINGS_STATUSES.includes(i.status as never);
               return (

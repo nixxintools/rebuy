@@ -385,7 +385,8 @@ export default function AddReceipt() {
           {chosen && gap > 0 && (
             <Alert severity="success">
               It&apos;s ${effectivePrice.toFixed(2)} right now — ${gap.toFixed(2)} below what you paid.
-              Rebuy can act on that as soon as you approve it.
+              Rebuy weighs that against what {merchant?.name ?? "this store"} charges to return before
+              acting, so it only moves when you&apos;d genuinely be ahead.
             </Alert>
           )}
           {error && <Alert severity="error">{error}</Alert>}

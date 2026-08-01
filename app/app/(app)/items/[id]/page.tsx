@@ -50,6 +50,7 @@ type ItemDetail = {
   rebuyPrice: string | null;
   returnDeadline: string;
   returnWindowSource: string;
+  returnCostUsd: string;
   status: string;
   mandateId: string | null;
   mandateExpiresAt: string | null;
@@ -149,7 +150,9 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
   const meta = statusMeta(item.status);
   const paid = Number(item.purchasePrice);
   const now = Number(item.currentPrice);
-  const gap = item.rebuyPrice ? paid - Number(item.rebuyPrice) : 0;
+  const returnCost = Number(item.returnCostUsd ?? 0);
+  // What the user is actually up, after paying to send the original back.
+  const gap = item.rebuyPrice ? paid - Number(item.rebuyPrice) - returnCost : 0;
   const banked = item.status === STATUS.refundConfirmed;
   const daysLeft = Math.max(
     0,
@@ -326,7 +329,7 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <Button
                   variant="contained"
-                  onClick={() => call(`/api/items/${item.id}/price`, undefined, "Trying again…")}
+                  onClick={() => call(`/api/items/${item.id}/retry`, undefined, "Trying again…")}
                   disabled={!!busy}
                   sx={{ background: GRADIENT }}
                 >
@@ -356,7 +359,9 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
       {banked && (
         <Alert severity="success">
           <AlertTitle>You saved ${gap.toFixed(2)}</AlertTitle>
-          Our share is ${(gap * 0.15).toFixed(2)}, so you keep ${(gap * 0.85).toFixed(2)}.
+          ${(paid - Number(item.rebuyPrice)).toFixed(2)} price difference
+          {returnCost > 0 ? `, less $${returnCost.toFixed(2)} to return the original` : ""}. Our share
+          is ${(gap * 0.15).toFixed(2)}, so you keep ${(gap * 0.85).toFixed(2)}.
         </Alert>
       )}
 
@@ -436,6 +441,12 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
             {item.returnWindowSource === "receipt"
               ? "taken from your receipt."
               : `based on ${item.retailerName}'s published return policy, because your receipt didn't state one.`}
+            {returnCost > 0 && (
+              <>
+                {" "}Returning it costs about <b style={{ color: "#111827" }}>${returnCost.toFixed(2)}</b>,
+                which Rebuy subtracts before deciding a drop is worth acting on.
+              </>
+            )}
             {item.lastCheckedAt && (
               <> Price last checked {new Date(item.lastCheckedAt).toLocaleString()}.</>
             )}

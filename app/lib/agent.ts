@@ -14,9 +14,18 @@ const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
 const RETURN_BUFFER_DAYS = 5;
 
-export function dropTriggered(purchase: number, current: number, deadline: Date) {
-  const meaningful =
-    purchase - current >= Math.max(MIN_DROP_DOLLARS, purchase * MIN_DROP_PCT);
+/**
+ * The drop has to clear what it costs to return the original, otherwise "acting"
+ * makes the user poorer. Return cost is part of the decision, not a footnote.
+ */
+export function dropTriggered(
+  purchase: number,
+  current: number,
+  deadline: Date,
+  returnCost: number
+) {
+  const net = purchase - current - returnCost;
+  const meaningful = net >= Math.max(MIN_DROP_DOLLARS, purchase * MIN_DROP_PCT);
   const daysLeft = (deadline.getTime() - Date.now()) / 86400000;
   return meaningful && daysLeft > RETURN_BUFFER_DAYS;
 }
@@ -42,7 +51,7 @@ export async function recordPrice(itemId: string, price: number, source: string)
 
   if (
     item.status === STATUS.monitoring &&
-    dropTriggered(Number(item.purchasePrice), price, item.returnDeadline)
+    dropTriggered(Number(item.purchasePrice), price, item.returnDeadline, Number(item.returnCostUsd))
   ) {
     await prisma.trackedItem.update({
       where: { id: itemId },
@@ -55,6 +64,8 @@ export async function recordPrice(itemId: string, price: number, source: string)
         detail: {
           paid: Number(item.purchasePrice),
           livePrice: price,
+          returnCost: Number(item.returnCostUsd),
+          netSaving: (Number(item.purchasePrice) - price - Number(item.returnCostUsd)).toFixed(2),
           source,
           merchant: item.retailerName,
         },
@@ -132,9 +143,19 @@ export async function executeRebuy(itemId: string) {
     throw e;
   }
 
-  if ((charge.status as string) === "failed") {
-    // Over-cap and provider failures arrive as HTTP 200 with status "failed".
-    const code = (charge.errorCode as string) ?? "CHARGE_FAILED";
+  // Treat only positively-evidenced success as success. Anything else — an
+  // unrecognised status, or a response with no transaction id — must not put the
+  // user on a screen telling them a card was issued and inviting them to return
+  // their original.
+  const chargeStatus = String(charge.status ?? "");
+  const transactionId = (charge.transactionId ?? charge.transaction_id) as string | undefined;
+  const succeeded =
+    Boolean(transactionId) && ["awaiting_result", "completed", "succeeded"].includes(chargeStatus);
+
+  if (!succeeded) {
+    const code =
+      (charge.errorCode as string) ??
+      (chargeStatus === "failed" ? "CHARGE_FAILED" : `UNCONFIRMED_${chargeStatus || "NO_STATUS"}`);
     await prisma.trackedItem.update({
       where: { id: itemId },
       data: { status: STATUS.chargeFailed, failureCode: code },
@@ -145,9 +166,8 @@ export async function executeRebuy(itemId: string) {
     return { ok: false, code };
   }
 
-  const transactionId = (charge.transactionId ?? charge.transaction_id) as string;
   try {
-    await reportCharge(item.mandateId, transactionId, itemId);
+    await reportCharge(item.mandateId, transactionId!, itemId);
   } catch {
     // A failed report must never lose a completed charge; the audit trail has it.
   }
@@ -159,7 +179,7 @@ export async function executeRebuy(itemId: string) {
     data: {
       status: STATUS.purchaseAuthorized,
       rebuyPrice: new Prisma.Decimal(amount),
-      chargeTransactionId: transactionId,
+      chargeTransactionId: transactionId!,
       failureCode: null,
     },
   });
@@ -171,7 +191,10 @@ export async function executeRebuy(itemId: string) {
         transactionId,
         amount,
         deduplicated: (charge.deduplicated as boolean) ?? false,
-        potentialSaving: (Number(item.purchasePrice) - Number(amount)).toFixed(2),
+        returnCost: Number(item.returnCostUsd),
+        netSavingIfReturned: (
+          Number(item.purchasePrice) - Number(amount) - Number(item.returnCostUsd)
+        ).toFixed(2),
       },
     },
   });

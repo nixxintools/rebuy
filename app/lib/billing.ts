@@ -12,7 +12,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { chargeMandate, reportCharge, PravaError } from "./prava";
-import { FEE_RATE, REALIZED_SAVINGS_STATUSES } from "./status";
+import { FEE_RATE, REALIZED_SAVINGS_STATUSES, netSaving } from "./status";
 
 export const FEE_MERCHANT = {
   name: "Rebuy",
@@ -42,10 +42,9 @@ export async function accruedFees(userId: string, period = currentPeriod()) {
   const billedItemIds = new Set(alreadyBilled.flatMap((c) => c.itemIds));
   const unbilled = items.filter((i) => !billedItemIds.has(i.id));
 
-  const savings = unbilled.reduce(
-    (s, i) => s + (i.rebuyPrice ? Number(i.purchasePrice) - Number(i.rebuyPrice) : 0),
-    0
-  );
+  // Net of what it cost to send the original back. Billing a share of the gross
+  // price gap would take money from a user who came out behind.
+  const savings = unbilled.reduce((s, i) => s + Math.max(0, netSaving(i)), 0);
   const fee = Math.round(savings * FEE_RATE * 100) / 100;
 
   return {
@@ -112,18 +111,33 @@ export async function billUser(userId: string, period = currentPeriod()): Promis
     // The same reference always maps to the same charge, so a retry after a
     // crash returns the original rather than taking the money twice.
     const charge = await chargeMandate(user.feeMandateId, amount.toFixed(2), reference, null);
-    if ((charge.status as string) === "failed") {
-      const code = (charge.errorCode as string) ?? "CHARGE_FAILED";
+
+    // Only a terminal success status with a transaction id counts as paid. An
+    // unrecognised status must stay pending and be reconciled, never be recorded
+    // as money we collected.
+    const chargeStatus = String(charge.status ?? "");
+    const transactionId = (charge.transactionId ?? charge.transaction_id) as string | undefined;
+    const succeeded =
+      Boolean(transactionId) &&
+      ["awaiting_result", "completed", "succeeded"].includes(chargeStatus);
+
+    if (!succeeded) {
+      const code =
+        (charge.errorCode as string) ??
+        (chargeStatus === "failed" ? "CHARGE_FAILED" : `UNCONFIRMED_${chargeStatus || "NO_STATUS"}`);
       await prisma.feeCharge.update({
         where: { id: record.id },
-        data: { status: "failed", failureCode: code },
+        data: {
+          // Unconfirmed is not failed — leave it retryable rather than writing
+          // off a charge that may have succeeded.
+          status: chargeStatus === "failed" ? "failed" : "pending",
+          failureCode: code,
+        },
       });
-      return { ok: false, reason: "The fee charge was declined.", code };
+      return { ok: false, reason: "The fee charge was not confirmed.", code };
     }
-
-    const transactionId = (charge.transactionId ?? charge.transaction_id) as string;
     try {
-      await reportCharge(user.feeMandateId, transactionId, null);
+      await reportCharge(user.feeMandateId, transactionId!, null);
     } catch {
       // Reporting failure must not lose a completed charge.
     }
@@ -132,7 +146,7 @@ export async function billUser(userId: string, period = currentPeriod()): Promis
       where: { id: record.id },
       data: { status: "paid", transactionId, failureCode: null },
     });
-    return { ok: true, charged: amount, transactionId, period };
+    return { ok: true, charged: amount, transactionId: transactionId!, period };
   } catch (e) {
     const code = e instanceof PravaError ? e.code : "UNKNOWN";
     await prisma.feeCharge.update({

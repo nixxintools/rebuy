@@ -71,6 +71,25 @@ export function resolveReturnDeadline(
   };
 }
 
+/**
+ * What it will cost the user to send the original back. This has to enter the
+ * buy decision, not just the marketing copy: a $5 price drop at a merchant that
+ * charges $9.90 to return leaves the user worse off, and billing 15% of the
+ * "saving" would take money for a loss.
+ *
+ * Where a merchant doesn't publish the cost we assume a conservative figure
+ * rather than zero, because the failure mode of guessing low is a real loss.
+ */
+const ASSUMED_SHIPPING_COST_USD = 9;
+
+export function estimatedReturnCost(m: Merchant): number {
+  const { cost, feeUsd } = m.policy;
+  if (cost === "free") return 0;
+  if (cost === "flat_fee") return feeUsd ?? ASSUMED_SHIPPING_COST_USD;
+  // customer_pays_shipping, or unpublished — assume it costs something.
+  return ASSUMED_SHIPPING_COST_USD;
+}
+
 const FINAL_SALE_MARKERS = [
   "final sale",
   "last call",
@@ -119,6 +138,8 @@ type ShopifyProduct = {
   variants: ShopifyVariant[];
 };
 
+export class VariantUnavailableError extends Error {}
+
 function toProduct(m: Merchant, p: ShopifyProduct, variantId?: string): MerchantProduct {
   const variants = p.variants.map((v) => ({
     id: String(v.id),
@@ -126,10 +147,20 @@ function toProduct(m: Merchant, p: ShopifyProduct, variantId?: string): Merchant
     price: Number(v.price),
     available: v.available !== false,
   }));
-  const chosen =
-    (variantId ? variants.find((v) => v.id === variantId) : undefined) ??
-    variants.find((v) => v.available) ??
-    variants[0];
+  // If the user picked a variant, that is the only one we may price or buy.
+  // Silently falling back to another would mean watching — and potentially
+  // buying — a different size or colour than they own.
+  let chosen;
+  if (variantId) {
+    chosen = variants.find((v) => v.id === variantId);
+    if (!chosen) {
+      throw new VariantUnavailableError(
+        `The exact option you selected is no longer listed at ${m.name}.`
+      );
+    }
+  } else {
+    chosen = variants.find((v) => v.available) ?? variants[0];
+  }
   const tags = Array.isArray(p.tags) ? p.tags : typeof p.tags === "string" ? p.tags.split(/,\s*/) : [];
 
   return {

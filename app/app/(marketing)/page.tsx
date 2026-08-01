@@ -61,12 +61,12 @@ const FEATURES = [
   {
     icon: <MonitorHeartIcon />,
     title: "Watches the real price",
-    body: "Live prices straight from the store, checked around the clock — not stale scraped data.",
+    body: "Live prices read straight from the store, checked every day and any time you open Rebuy.",
   },
   {
     icon: <BoltIcon />,
     title: "Acts inside your window",
-    body: "It only moves while you can still return the original, with days to spare for shipping.",
+    body: "It only buys while you can still return the original — using that store’s real return policy, not a guess.",
   },
   {
     icon: <SavingsIcon />,

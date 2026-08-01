@@ -1,0 +1,690 @@
+[
+  {
+    "host": "us.anker.com",
+    "currency": "USD",
+    "sampleHandle": "a83h1-hdmi-switch",
+    "sampleTitle": "Anker HDMI Switch (2 in 1 Out, 4K HDMI)",
+    "samplePrice": "12.99",
+    "variantCount": 1
+  },
+  {
+    "host": "moft.us",
+    "currency": "USD",
+    "sampleHandle": "snap-phone-tripod-crafted-from-movas™-e-coffee-bio-leather",
+    "sampleTitle": "Snap Phone Tripod Crafted from MOVAS™-E Coffee Bio-Leather",
+    "samplePrice": "3900.00",
+    "variantCount": 1
+  },
+  {
+    "host": "www.nomadgoods.com",
+    "currency": "USD",
+    "sampleHandle": "sport-band-stone",
+    "sampleTitle": "Sport Band - 46mm/49mm | Stone",
+    "samplePrice": "6900.00",
+    "variantCount": 1
+  },
+  {
+    "host": "peakdesign.com",
+    "currency": "USD",
+    "sampleHandle": "travel-backpack-2-in-1-bundle-2-stone",
+    "sampleTitle": "Travel Backpack 2-in-1 + Bundle 2 | Stone",
+    "samplePrice": "467.87",
+    "variantCount": 1
+  },
+  {
+    "host": "twelvesouth.com",
+    "currency": "USD",
+    "sampleHandle": "valet-small-frames",
+    "sampleTitle": "Valet 4.25in. Frame",
+    "samplePrice": "24.99",
+    "variantCount": 3
+  },
+  {
+    "host": "www.elevationlab.com",
+    "currency": "USD",
+    "sampleHandle": "3m-vhb-round",
+    "sampleTitle": "3M VHB 1\" Round (25-Pack)",
+    "samplePrice": "9.99",
+    "variantCount": 1
+  },
+  {
+    "host": "orbitkey.com",
+    "currency": "USD",
+    "sampleHandle": "creative-workspace-set",
+    "sampleTitle": "Creative Workspace Set",
+    "samplePrice": "79.84",
+    "variantCount": 35
+  },
+  {
+    "host": "mous.co",
+    "currency": "USD",
+    "sampleHandle": "wheeled-duffel-suitcase-mercedes",
+    "sampleTitle": "105L Wheeled Duffel - Optimal x Mercedes-AMG F1 Team",
+    "samplePrice": "584.99",
+    "variantCount": 4
+  },
+  {
+    "host": "spigen.com",
+    "currency": "USD",
+    "sampleHandle": "galaxy-watch-9-series-thin-fit-360",
+    "sampleTitle": "Galaxy Watch 9 Series - Thin Fit 360",
+    "samplePrice": "29.99",
+    "variantCount": 2
+  },
+  {
+    "host": "allbirds.com",
+    "currency": "USD",
+    "sampleHandle": "mens-cruiser-shadow-blue-natural-white-sole",
+    "sampleTitle": "Men's Cruiser - Shadow Blue (Natural White Sole)",
+    "samplePrice": "105.00",
+    "variantCount": 13
+  },
+  {
+    "host": "vessi.com",
+    "currency": "USD",
+    "sampleHandle": "weekend-slip-on-fernstone-light-dune",
+    "sampleTitle": "Weekend Slip-On - Fernstone/Light Dune",
+    "samplePrice": "140.00",
+    "variantCount": 22
+  },
+  {
+    "host": "rothys.com",
+    "currency": "USD",
+    "sampleHandle": "womens-max-square-ballerina-revelvet-russet",
+    "sampleTitle": "The Max Square Ballerina - ReVelvet™ Russet",
+    "samplePrice": "155.00",
+    "variantCount": 17
+  },
+  {
+    "host": "www.atoms.com",
+    "currency": "USD",
+    "sampleHandle": "model-000-3-x-classic-crew-socks",
+    "sampleTitle": "Model 000 + 3 x Classic Crew Socks",
+    "samplePrice": "16900.00",
+    "variantCount": 1
+  },
+  {
+    "host": "olivercabell.com",
+    "currency": "USD",
+    "sampleHandle": "sb-1-waxed-wasabi-mens",
+    "sampleTitle": "SB 1 | Waxed Wasabi",
+    "samplePrice": "300.00",
+    "variantCount": 9
+  },
+  {
+    "host": "thousandfell.com",
+    "currency": "USD",
+    "sampleHandle": "womens-lace-up-bone-dune",
+    "sampleTitle": "Women's Lace Up | Bone-Dune",
+    "samplePrice": "145.00",
+    "variantCount": 11
+  },
+  {
+    "host": "kizik.com",
+    "currency": "USD",
+    "sampleHandle": "womens-siena-heron-sweet-lavender",
+    "sampleTitle": "Women's Siena - Heron/Sweet Lavender",
+    "samplePrice": "129.95",
+    "variantCount": 13
+  },
+  {
+    "host": "tentree.com",
+    "currency": "USD",
+    "sampleHandle": "sasquatch-trek-elevation-hat-ashwood-meteorite-black",
+    "sampleTitle": "Sasquatch Trek Elevation Hat",
+    "samplePrice": "45.00",
+    "variantCount": 1
+  },
+  {
+    "host": "outerknown.com",
+    "currency": "USD",
+    "sampleHandle": "atlantic-oxford-shirt-lxfx5fowx3-resale",
+    "sampleTitle": "Atlantic Oxford Shirt - Outerworn",
+    "samplePrice": "8900.00",
+    "variantCount": 1
+  },
+  {
+    "host": "taylorstitch.com",
+    "currency": "USD",
+    "sampleHandle": "long-haul-jacket-in-soil-slub-denim-2607",
+    "sampleTitle": "The Long Haul Jacket in Soil Slub Denim",
+    "samplePrice": "228.00",
+    "variantCount": 6
+  },
+  {
+    "host": "marinelayer.com",
+    "currency": "USD",
+    "sampleHandle": "luxe-250-classic-tee-2",
+    "sampleTitle": "Luxe 250 Classic Tee",
+    "samplePrice": "64.00",
+    "variantCount": 7
+  },
+  {
+    "host": "fahertybrand.com",
+    "currency": "USD",
+    "sampleHandle": "georgetown-sunwashed-slub-hoodie-white",
+    "sampleTitle": "Georgetown Sunwashed Slub Hoodie - White",
+    "samplePrice": "118.00",
+    "variantCount": 6
+  },
+  {
+    "host": "mackweldon.com",
+    "currency": "USD",
+    "sampleHandle": "3-pack-airknitˣ-knit-boxers-morning-phase",
+    "sampleTitle": "3-Pack AIRKNITˣ Knit Boxers Morning Phase",
+    "samplePrice": "10900.00",
+    "variantCount": 125
+  },
+  {
+    "host": "ministryofsupply.com",
+    "currency": "USD",
+    "sampleHandle": "mens-apollo-polo-grey-heather-mps",
+    "sampleTitle": "Men's Apollo Polo - Grey Heather (MPS)",
+    "samplePrice": "118.00",
+    "variantCount": 7
+  },
+  {
+    "host": "unboundmerino.com",
+    "currency": "USD",
+    "sampleHandle": "womens-merino-turtleneck-dress",
+    "sampleTitle": "Women's Merino Turtleneck Dress",
+    "samplePrice": "168.00",
+    "variantCount": 10
+  },
+  {
+    "host": "woolandprince.com",
+    "currency": "USD",
+    "sampleHandle": "signature-crew-neck-tee-odyssey-gray",
+    "sampleTitle": "Signature Crew Neck Tee",
+    "samplePrice": "80.00",
+    "variantCount": 7
+  },
+  {
+    "host": "chubbiesshorts.com",
+    "currency": "USD",
+    "sampleHandle": "the-thigh-of-the-tiger-satin-sleep-shirt",
+    "sampleTitle": "The Thigh of the Tiger (Satin Sleep Shirt)",
+    "samplePrice": "25.00",
+    "variantCount": 5
+  },
+  {
+    "host": "birddogs.com",
+    "currency": "USD",
+    "sampleHandle": "gym-shorts-black-with-geometric-print",
+    "sampleTitle": "Gym Shorts - Navy with Binder Reminder (The Doodle Lords)",
+    "samplePrice": "78.00",
+    "variantCount": 17
+  },
+  {
+    "host": "everlane.com",
+    "currency": "USD",
+    "sampleHandle": "womens-lightweight-loose-wide-leg-jean-long-black",
+    "sampleTitle": "Lightweight Loose Wide-Leg Jean | Black | Long",
+    "samplePrice": "15500.00",
+    "variantCount": 11
+  },
+  {
+    "host": "trueclassictees.com",
+    "currency": "USD",
+    "sampleHandle": "tc-active-crew-tees-3-pack",
+    "sampleTitle": "Active Crew 3-Pack",
+    "samplePrice": "89.99",
+    "variantCount": 6
+  },
+  {
+    "host": "asrv.com",
+    "currency": "USD",
+    "sampleHandle": "0660-aerosilver-established-tee-dark-earth",
+    "sampleTitle": "0660. AeroSilver® Established Tee - Dark Earth",
+    "samplePrice": "6600.00",
+    "variantCount": 6
+  },
+  {
+    "host": "brooklinen.com",
+    "currency": "USD",
+    "sampleHandle": "dreamweave-waffle-robe-last-call",
+    "sampleTitle": "Dreamweave Waffle Robe - Last Call",
+    "samplePrice": "83.40",
+    "variantCount": 5
+  },
+  {
+    "host": "parachutehome.com",
+    "currency": "USD",
+    "sampleHandle": "organic-oasis-shower-curtain-natural-and-tobacco",
+    "sampleTitle": "Organic Oasis Shower Curtain (Natural and Tobacco)",
+    "samplePrice": "129.00",
+    "variantCount": 1
+  },
+  {
+    "host": "bollandbranch.com",
+    "currency": "USD",
+    "sampleHandle": "plush-bath-towel-set-hydrangea_",
+    "sampleTitle": "FREE Plush Bath Towel Set - Hydrangea",
+    "samplePrice": "169.00",
+    "variantCount": 1
+  },
+  {
+    "host": "buffy.co",
+    "currency": "USD",
+    "sampleHandle": "matelasse-coverlet",
+    "sampleTitle": "Matelassé Coverlet",
+    "samplePrice": "95.00",
+    "variantCount": 9
+  },
+  {
+    "host": "coyuchi.com",
+    "currency": "USD",
+    "sampleHandle": "womens-isla-organic-cotton-robe-fawn-garden",
+    "sampleTitle": "Women's Isla Organic Cotton Robe",
+    "samplePrice": "44.00",
+    "variantCount": 3
+  },
+  {
+    "host": "sijohome.com",
+    "currency": "USD",
+    "sampleHandle": "aerochill-cooling-comforter",
+    "sampleTitle": "AeroChill Cooling Comforter",
+    "samplePrice": "120.00",
+    "variantCount": 15
+  },
+  {
+    "host": "cozyearth.com",
+    "currency": "USD",
+    "sampleHandle": "mens-everywhere-pant-34l-relaxed-fit",
+    "sampleTitle": "Men's Everywhere Pant 34\"L - Relaxed Fit",
+    "samplePrice": "12100.00",
+    "variantCount": 30
+  },
+  {
+    "host": "ettitude.com",
+    "currency": "USD",
+    "sampleHandle": "hooded-waffle-towel",
+    "sampleTitle": "Bamboo Waffle Hooded Baby Towel",
+    "samplePrice": "50.00",
+    "variantCount": 1
+  },
+  {
+    "host": "nestbedding.com",
+    "currency": "USD",
+    "sampleHandle": "extend-protection-plans-4",
+    "sampleTitle": "Extend Protection Plan",
+    "samplePrice": "79.00",
+    "variantCount": 4
+  },
+  {
+    "host": "avocadogreenmattress.com",
+    "currency": "USD",
+    "sampleHandle": "organic-crib-mattress-pad-protector",
+    "sampleTitle": "Organic Crib Mattress Pad Protector",
+    "samplePrice": "139.00",
+    "variantCount": 2
+  },
+  {
+    "host": "fromourplace.com",
+    "currency": "USD",
+    "sampleHandle": "petite-perfect-pot",
+    "sampleTitle": "Ceramic Nonstick Perfect Pot 1.75 qt.",
+    "samplePrice": "99.00",
+    "variantCount": 5
+  },
+  {
+    "host": "greatjonesgoods.com",
+    "currency": "USD",
+    "sampleHandle": "big-deal-saucy",
+    "sampleTitle": "Big Deal & Saucy",
+    "samplePrice": "190.00",
+    "variantCount": 1
+  },
+  {
+    "host": "misen.com",
+    "currency": "USD",
+    "sampleHandle": "knife-set-7-piece-white",
+    "sampleTitle": "7-Piece Knife Set (AUS-10/8) - Final Sale",
+    "samplePrice": "33400.00",
+    "variantCount": 1
+  },
+  {
+    "host": "materialkitchen.com",
+    "currency": "USD",
+    "sampleHandle": "pantry-cotton-check-kitchen-towels",
+    "sampleTitle": "Pantry Cotton Check Kitchen Towels Set",
+    "samplePrice": "48.00",
+    "variantCount": 4
+  },
+  {
+    "host": "hedleyandbennett.com",
+    "currency": "USD",
+    "sampleHandle": "the-chic-cook-set",
+    "sampleTitle": "The Chic Cook Set",
+    "samplePrice": "355.00",
+    "variantCount": 1
+  },
+  {
+    "host": "fellowproducts.com",
+    "currency": "USD",
+    "sampleHandle": "opus-gen-2-cleaning-brush",
+    "sampleTitle": "Opus Gen 2 Cleaning Brush",
+    "samplePrice": "7.95",
+    "variantCount": 2
+  },
+  {
+    "host": "brightland.co",
+    "currency": "USD",
+    "sampleHandle": "mini-ardor",
+    "sampleTitle": "Mini Ardor - Chili Flavored Olive Oil",
+    "samplePrice": "20.00",
+    "variantCount": 1
+  },
+  {
+    "host": "graza.co",
+    "currency": "USD",
+    "sampleHandle": "hot-n-sweet-olive-oil-potato-chips",
+    "sampleTitle": "Hot 'n Sweet Olive Oil Potato Chips",
+    "samplePrice": "5.99",
+    "variantCount": 1
+  },
+  {
+    "host": "cotopaxi.com",
+    "currency": "USD",
+    "sampleHandle": "teca-fleece-headband-4",
+    "sampleTitle": "Teca Fleece Headband",
+    "samplePrice": "12.00",
+    "variantCount": 3
+  },
+  {
+    "host": "rumpl.com",
+    "currency": "USD",
+    "sampleHandle": "pack-mat-micro-puzzled-blue",
+    "sampleTitle": "Pack Mat Micro - Puzzled Blue",
+    "samplePrice": "29.95",
+    "variantCount": 1
+  },
+  {
+    "host": "nemoequipment.com",
+    "currency": "USD",
+    "sampleHandle": "lightranger-800-mini",
+    "sampleTitle": "Devos LightRanger 800 Mini",
+    "samplePrice": "99.99",
+    "variantCount": 1
+  },
+  {
+    "host": "hyperlitemountaingear.com",
+    "currency": "USD",
+    "sampleHandle": "20-degree-mummy-bag",
+    "sampleTitle": "20-Degree Mummy Bag",
+    "samplePrice": "650.00",
+    "variantCount": 3
+  },
+  {
+    "host": "gossamergear.com",
+    "currency": "USD",
+    "sampleHandle": "dac-stakes",
+    "sampleTitle": "DAC Mini J-Stakes",
+    "samplePrice": "20.00",
+    "variantCount": 1
+  },
+  {
+    "host": "tonal.com",
+    "currency": "USD",
+    "sampleHandle": "loops-straps-bundle",
+    "sampleTitle": "Pilates Loops + Ankle Straps Bundle",
+    "samplePrice": "150.00",
+    "variantCount": 1
+  },
+  {
+    "host": "hyperice.com",
+    "currency": "USD",
+    "sampleHandle": "open-box-hypervolt-go-3",
+    "sampleTitle": "Open Box Hypervolt Go 2",
+    "samplePrice": "99.00",
+    "variantCount": 1
+  },
+  {
+    "host": "therabody.com",
+    "currency": "USD",
+    "sampleHandle": "prime-recovery-bundle-black",
+    "sampleTitle": "Prime Recovery Bundle",
+    "samplePrice": "549.98",
+    "variantCount": 1
+  },
+  {
+    "host": "beyondyoga.com",
+    "currency": "USD",
+    "sampleHandle": "sport-active-v-neck-polo-nocturnal-navy-00ab2-0002",
+    "sampleTitle": "Sport Active V-Neck Polo",
+    "samplePrice": "8600.00",
+    "variantCount": 6
+  },
+  {
+    "host": "girlfriend.com",
+    "currency": "USD",
+    "sampleHandle": "black-meredith-bow-tank",
+    "sampleTitle": "Black Meredith Bow Tank",
+    "samplePrice": "23.40",
+    "variantCount": 11
+  },
+  {
+    "host": "outdoorvoices.com",
+    "currency": "USD",
+    "sampleHandle": "w-the-exercise-3in-skort-evergreen-floral",
+    "sampleTitle": "The Exercise 3\" Skort",
+    "samplePrice": "47.99",
+    "variantCount": 8
+  },
+  {
+    "host": "glossier.com",
+    "currency": "USD",
+    "sampleHandle": "cloud-paint-sample-dawn-storm-spark-eve-sdg-go-live",
+    "sampleTitle": "Cloud Paint Sample - Dawn, Storm, Spark, Eve",
+    "samplePrice": "0.00",
+    "variantCount": 1
+  },
+  {
+    "host": "iliabeauty.com",
+    "currency": "USD",
+    "sampleHandle": "dual-ended-angled-line-smudge-eye-makeup-brush",
+    "sampleTitle": "Angled Line + Smudge Brush",
+    "samplePrice": "28.00",
+    "variantCount": 1
+  },
+  {
+    "host": "tula.com",
+    "currency": "USD",
+    "sampleHandle": "the-iconic-duo-luminous",
+    "sampleTitle": "The Iconic Duo - Luminous",
+    "samplePrice": "69.00",
+    "variantCount": 1
+  },
+  {
+    "host": "saiehello.com",
+    "currency": "USD",
+    "sampleHandle": "mystery-gift",
+    "sampleTitle": "Mystery Gift",
+    "samplePrice": "0.00",
+    "variantCount": 1
+  },
+  {
+    "host": "kosas.com",
+    "currency": "USD",
+    "sampleHandle": "conceal-set-duo",
+    "sampleTitle": "Conceal + Set Duo",
+    "samplePrice": "6900.00",
+    "variantCount": 1
+  },
+  {
+    "host": "versedskin.com",
+    "currency": "USD",
+    "sampleHandle": "sunkissed-set",
+    "sampleTitle": "Face",
+    "samplePrice": "47.99",
+    "variantCount": 1
+  },
+  {
+    "host": "harrys.com",
+    "currency": "USD",
+    "sampleHandle": "harrys-plus-blade-refills-tts",
+    "sampleTitle": "Harry's Plus Blade Refills",
+    "samplePrice": "15.00",
+    "variantCount": 1
+  },
+  {
+    "host": "awaytravel.com",
+    "currency": "USD",
+    "sampleHandle": "trunk-3-olive-green",
+    "sampleTitle": "The Trunk 3 in Olive Green",
+    "samplePrice": "435.00",
+    "variantCount": 1
+  },
+  {
+    "host": "monos.com",
+    "currency": "USD",
+    "sampleHandle": "aluminum-carry-on",
+    "sampleTitle": "Aluminum Carry-On",
+    "samplePrice": "695.00",
+    "variantCount": 3
+  },
+  {
+    "host": "calpaktravel.com",
+    "currency": "USD",
+    "sampleHandle": "haven-15-laptop-tote-bag-in-croc-embossed",
+    "sampleTitle": "Haven 15\" Laptop Tote Bag in Croc-Embossed",
+    "samplePrice": "198.00",
+    "variantCount": 2
+  },
+  {
+    "host": "dagnedover.com",
+    "currency": "USD",
+    "sampleHandle": "landon-carryall-small-storm-reset",
+    "sampleTitle": "Landon Carryall in Storm, Small",
+    "samplePrice": "21100.00",
+    "variantCount": 1
+  },
+  {
+    "host": "baboontothemoon.com",
+    "currency": "USD",
+    "sampleHandle": "8-birthday-go-bag-roller-small-35l",
+    "sampleTitle": "$8 BIRTHDAY Go-Bag Roller — Small (35L)",
+    "samplePrice": "8.00",
+    "variantCount": 1
+  },
+  {
+    "host": "tortugabackpacks.com",
+    "currency": "USD",
+    "sampleHandle": "travel-together-pro-34l",
+    "sampleTitle": "Travel Together Pro 34L",
+    "samplePrice": "525.00",
+    "variantCount": 1
+  },
+  {
+    "host": "wildone.com",
+    "currency": "USD",
+    "sampleHandle": "cat-harness-leash-collar-kit",
+    "sampleTitle": "Cat Harness & Leash + Collar Kit",
+    "samplePrice": "50.00",
+    "variantCount": 1
+  },
+  {
+    "host": "fablepets.com",
+    "currency": "USD",
+    "sampleHandle": "reggie-raccoon-huggleflatties™-durable-plush-dog-toy",
+    "sampleTitle": "Reggie Raccoon HuggleFlatties™ Durable Plush Dog Toy",
+    "samplePrice": "17.49",
+    "variantCount": 1
+  },
+  {
+    "host": "maxbone.com",
+    "currency": "USD",
+    "sampleHandle": "freeze-dried-raw-beef-recipe",
+    "sampleTitle": "Freeze-dried Raw Beef Recipe",
+    "samplePrice": "34.00",
+    "variantCount": 1
+  },
+  {
+    "host": "pairofthieves.com",
+    "currency": "USD",
+    "sampleHandle": "superfit-mesh-boxer-briefs-1-pack-blue",
+    "sampleTitle": "SuperFit Mesh Boxer Briefs (1-Pack)",
+    "samplePrice": "14.99",
+    "variantCount": 7
+  },
+  {
+    "host": "vincerowatches.com",
+    "currency": "USD",
+    "sampleHandle": "collectors-bundle-damascus-day-one-edition",
+    "sampleTitle": "Collectors Bundle - Damascus Day One Edition",
+    "samplePrice": "88100.00",
+    "variantCount": 1
+  },
+  {
+    "host": "shinola.com",
+    "currency": "USD",
+    "sampleHandle": "4mm-diagonal-textured-white-gold-band",
+    "sampleTitle": "4mm Diagonal Textured White Gold Band",
+    "samplePrice": "164500.00",
+    "variantCount": 15
+  },
+  {
+    "host": "hellotushy.com",
+    "currency": "USD",
+    "sampleHandle": "tushy-travel-gift-with-purchase",
+    "sampleTitle": "TUSHY Travel Gift With Purchase!",
+    "samplePrice": "0.00",
+    "variantCount": 1
+  },
+  {
+    "host": "drinkolipop.com",
+    "currency": "USD",
+    "sampleHandle": "orange-cream-minis",
+    "sampleTitle": "Orange Cream",
+    "samplePrice": "12.79",
+    "variantCount": 1
+  },
+  {
+    "host": "ritual.com",
+    "currency": "USD",
+    "sampleHandle": "glp1-nutrition-support-ritual",
+    "sampleTitle": "GLP-1 Nutrition Support Ritual*",
+    "samplePrice": "77.00",
+    "variantCount": 1
+  },
+  {
+    "host": "www.burrow.com",
+    "currency": "USD",
+    "sampleHandle": "nomad-plus-leather-bolster-pillow",
+    "sampleTitle": "Nomad Leather Bolster Pillow (Set of 2)",
+    "samplePrice": "81.00",
+    "variantCount": 3
+  },
+  {
+    "host": "thuma.co",
+    "currency": "USD",
+    "sampleHandle": "signature-island-chaise-sectional",
+    "sampleTitle": "Signature Island Chaise Sectional",
+    "samplePrice": "0.00",
+    "variantCount": 8
+  },
+  {
+    "host": "benchmade.com",
+    "currency": "USD",
+    "sampleHandle": "11or",
+    "sampleTitle": "SlipRidge™ Hook |",
+    "samplePrice": "75.00",
+    "variantCount": 1
+  },
+  {
+    "host": "leatherman.com",
+    "currency": "USD",
+    "sampleHandle": "batch-009-adapter",
+    "sampleTitle": "Batch #009: Adapter",
+    "samplePrice": "75.00",
+    "variantCount": 1
+  },
+  {
+    "host": "topodesigns.com",
+    "currency": "USD",
+    "sampleHandle": "utility-canvas-tote-duck-camo",
+    "sampleTitle": "Utility Canvas Tote Duck Camo",
+    "samplePrice": "39.00",
+    "variantCount": 1
+  }
+]

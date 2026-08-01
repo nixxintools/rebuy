@@ -1,9 +1,14 @@
-// The agent: reads the merchant's live price, decides, and executes the rebuy
-// against an active Prava mandate.
+// The agent: reads the merchant's live price, decides, and — if the user has
+// granted spending power — charges their Prava authorization.
+//
+// The hard rule here is that a state must be justified by evidence we hold. A
+// completed mandate charge proves a card credential was issued; it does not
+// prove an order exists at the merchant, so it never claims one.
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { chargeMandate, reportCharge, getMandate, PravaError } from "./prava";
-import { fetchProduct } from "./merchants";
+import { fetchProduct, MerchantUnavailableError } from "./merchants";
+import { STATUS } from "./status";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -16,12 +21,12 @@ export function dropTriggered(purchase: number, current: number, deadline: Date)
   return meaningful && daysLeft > RETURN_BUFFER_DAYS;
 }
 
-// Reads the merchant's live price for a tracked item and acts if it dropped.
+/** Reads the merchant's live price for a tracked item and acts if it dropped. */
 export async function checkPrice(itemId: string) {
   const item = await prisma.trackedItem.findUniqueOrThrow({ where: { id: itemId } });
   if (!item.productHandle) throw new Error("This item has no linked merchant product.");
 
-  const live = await fetchProduct(item.merchantId, item.productHandle);
+  const live = await fetchProduct(item.merchantId, item.productHandle, item.variantId ?? undefined);
   return recordPrice(itemId, live.price, "merchant_live");
 }
 
@@ -32,16 +37,16 @@ export async function recordPrice(itemId: string, price: number, source: string)
   });
   await prisma.trackedItem.update({
     where: { id: itemId },
-    data: { currentPrice: new Prisma.Decimal(price.toFixed(2)) },
+    data: { currentPrice: new Prisma.Decimal(price.toFixed(2)), lastCheckedAt: new Date() },
   });
 
   if (
-    item.status === "monitoring" &&
+    item.status === STATUS.monitoring &&
     dropTriggered(Number(item.purchasePrice), price, item.returnDeadline)
   ) {
     await prisma.trackedItem.update({
       where: { id: itemId },
-      data: { status: "drop_detected" },
+      data: { status: STATUS.dropDetected },
     });
     await prisma.agentEvent.create({
       data: {
@@ -60,22 +65,23 @@ export async function recordPrice(itemId: string, price: number, source: string)
   return null;
 }
 
-// Idempotent by design: deterministic charge reference + status guards.
 export async function executeRebuy(itemId: string) {
   const item = await prisma.trackedItem.findUniqueOrThrow({ where: { id: itemId } });
-  if (item.status !== "drop_detected" || !item.mandateId) return null;
+  if (item.status !== STATUS.dropDetected || !item.mandateId) return null;
   const amount = Number(item.currentPrice).toFixed(2);
 
   // Never spend against an authorization that isn't the one shown to the user.
-  // Prava enforces merchant scope and the ceiling too, but a mismatch here means
-  // our own UI is describing guardrails the user never granted — so refuse, and
-  // say so, rather than letting the network produce a confusing decline.
+  // Prava enforces scope and ceiling too, but a mismatch means our own interface
+  // has misdescribed what was granted — so stop and say so.
   const authority = await getMandate(item.mandateId);
   const merchantMatches =
     String(authority.merchantName ?? "").toLowerCase() === item.retailerName.toLowerCase();
   const ceilingCoversCharge = Number(authority.approvedAmount) >= Number(amount);
   if (!merchantMatches || !ceilingCoversCharge) {
-    await prisma.trackedItem.update({ where: { id: itemId }, data: { status: "ingested", mandateId: null } });
+    await prisma.trackedItem.update({
+      where: { id: itemId },
+      data: { status: STATUS.ingested, mandateId: null, failureCode: "AUTHORIZATION_MISMATCH" },
+    });
     await prisma.agentEvent.create({
       data: {
         itemId,
@@ -92,15 +98,17 @@ export async function executeRebuy(itemId: string) {
     return { ok: false, code: "AUTHORIZATION_MISMATCH" };
   }
 
-  // Idempotent per attempt: a resumed run reuses the reference and de-duplicates,
-  // while a genuinely failed attempt can still be retried under a new one.
-  const attempts = await prisma.agentEvent.count({
-    where: { itemId, type: "rebuy_started" },
+  // Idempotency is keyed to a stored counter rather than a count of past events,
+  // so adding states between "charged" and "ordered" can't silently mint a new
+  // reference and defeat de-duplication.
+  const attempt = item.rebuyAttempts + 1;
+  const reference = `${item.mandateId}:rebuy:${attempt}`;
+  await prisma.trackedItem.update({
+    where: { id: itemId },
+    data: { rebuyAttempts: attempt, chargeReference: reference },
   });
-  const reference = `${item.mandateId}:rebuy:${attempts}`;
-
   await prisma.agentEvent.create({
-    data: { itemId, type: "rebuy_started", detail: { amount, reference } },
+    data: { itemId, type: "rebuy_started", detail: { amount, reference, attempt } },
   });
 
   let charge: Record<string, unknown>;
@@ -108,45 +116,66 @@ export async function executeRebuy(itemId: string) {
     charge = await chargeMandate(item.mandateId, amount, reference, itemId);
   } catch (e) {
     if (e instanceof PravaError) {
-      // Expired / not-active / forbidden are expected branches, not crashes.
-      const backTo = e.code === "MANDATE_EXPIRED" ? "expired" : "monitoring";
-      await prisma.trackedItem.update({ where: { id: itemId }, data: { status: backTo } });
+      const expired = e.code === "MANDATE_EXPIRED" || e.code === "MANDATE_NOT_ACTIVE";
+      await prisma.trackedItem.update({
+        where: { id: itemId },
+        data: {
+          status: expired ? STATUS.authorizationExpired : STATUS.chargeFailed,
+          failureCode: e.code,
+        },
+      });
+      await prisma.agentEvent.create({
+        data: { itemId, type: "rebuy_failed", detail: { code: e.code, responseId: e.responseId } },
+      });
       return { ok: false, code: e.code };
     }
     throw e;
   }
 
   if ((charge.status as string) === "failed") {
-    // e.g. THRESHOLD_EXCEEDED arrives as HTTP 200 with status "failed"
-    await prisma.trackedItem.update({ where: { id: itemId }, data: { status: "monitoring" } });
+    // Over-cap and provider failures arrive as HTTP 200 with status "failed".
+    const code = (charge.errorCode as string) ?? "CHARGE_FAILED";
+    await prisma.trackedItem.update({
+      where: { id: itemId },
+      data: { status: STATUS.chargeFailed, failureCode: code },
+    });
     await prisma.agentEvent.create({
       data: { itemId, type: "rebuy_failed", detail: JSON.parse(JSON.stringify(charge)) },
     });
-    return { ok: false, code: (charge.fetchStatus as string) ?? "failed" };
+    return { ok: false, code };
   }
 
   const transactionId = (charge.transactionId ?? charge.transaction_id) as string;
   try {
     await reportCharge(item.mandateId, transactionId, itemId);
   } catch {
-    // A failed report must not lose the completed charge; the audit trail has it.
+    // A failed report must never lose a completed charge; the audit trail has it.
   }
 
+  // Money is committed and a single-use card exists. No order has been placed at
+  // the merchant — that is the user's next step, and the status says exactly that.
   await prisma.trackedItem.update({
     where: { id: itemId },
-    data: { status: "return_ready", rebuyPrice: item.currentPrice },
+    data: {
+      status: STATUS.purchaseAuthorized,
+      rebuyPrice: new Prisma.Decimal(amount),
+      chargeTransactionId: transactionId,
+      failureCode: null,
+    },
   });
   await prisma.agentEvent.create({
     data: {
       itemId,
-      type: "rebuy_complete",
+      type: "purchase_authorized",
       detail: {
         transactionId,
         amount,
         deduplicated: (charge.deduplicated as boolean) ?? false,
-        savings: (Number(item.purchasePrice) - Number(amount)).toFixed(2),
+        potentialSaving: (Number(item.purchasePrice) - Number(amount)).toFixed(2),
       },
     },
   });
   return { ok: true, transactionId };
 }
+
+export { MerchantUnavailableError };

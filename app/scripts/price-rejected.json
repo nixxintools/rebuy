@@ -1,0 +1,160 @@
+[
+  {
+    "host": "www.atoms.com",
+    "currency": "USD",
+    "sampleHandle": "model-000-3-x-classic-crew-socks",
+    "sampleTitle": "Model 000 + 3 x Classic Crew Socks",
+    "samplePrice": "16900.00",
+    "variantCount": 1,
+    "displayedPrice": 169,
+    "ratio": 100,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "tentree.com",
+    "currency": "USD",
+    "sampleHandle": "sasquatch-trek-elevation-hat-ashwood-meteorite-black",
+    "sampleTitle": "Sasquatch Trek Elevation Hat",
+    "samplePrice": "45.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "unboundmerino.com",
+    "currency": "USD",
+    "sampleHandle": "womens-merino-turtleneck-dress",
+    "sampleTitle": "Women's Merino Turtleneck Dress",
+    "samplePrice": "168.00",
+    "variantCount": 10,
+    "displayedPrice": 155,
+    "ratio": 1.08,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "birddogs.com",
+    "currency": "USD",
+    "sampleHandle": "gym-shorts-black-with-geometric-print",
+    "sampleTitle": "Gym Shorts - Navy with Binder Reminder (The Doodle Lords)",
+    "samplePrice": "78.00",
+    "variantCount": 17,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "trueclassictees.com",
+    "currency": "USD",
+    "sampleHandle": "tc-active-crew-tees-3-pack",
+    "sampleTitle": "Active Crew 3-Pack",
+    "samplePrice": "89.99",
+    "variantCount": 6,
+    "displayedPrice": 11100,
+    "ratio": 0.01,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "brooklinen.com",
+    "currency": "USD",
+    "sampleHandle": "dreamweave-waffle-robe-last-call",
+    "sampleTitle": "Dreamweave Waffle Robe - Last Call",
+    "samplePrice": "83.40",
+    "variantCount": 5,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "cozyearth.com",
+    "currency": "USD",
+    "sampleHandle": "mens-everywhere-pant-34l-relaxed-fit",
+    "sampleTitle": "Men's Everywhere Pant 34\"L - Relaxed Fit",
+    "samplePrice": "12100.00",
+    "variantCount": 30,
+    "displayedPrice": 9680,
+    "ratio": 1.25,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "nestbedding.com",
+    "currency": "USD",
+    "sampleHandle": "extend-protection-plans-4",
+    "sampleTitle": "Extend Protection Plan",
+    "samplePrice": "79.00",
+    "variantCount": 4,
+    "displayedPrice": 49,
+    "ratio": 1.61,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "avocadogreenmattress.com",
+    "currency": "USD",
+    "sampleHandle": "organic-crib-mattress-pad-protector",
+    "sampleTitle": "Organic Crib Mattress Pad Protector",
+    "samplePrice": "139.00",
+    "variantCount": 2,
+    "displayedPrice": 99,
+    "ratio": 1.4,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "cotopaxi.com",
+    "currency": "USD",
+    "sampleHandle": "teca-fleece-headband-4",
+    "sampleTitle": "Teca Fleece Headband",
+    "samplePrice": "12.00",
+    "variantCount": 3,
+    "displayedPrice": 8,
+    "ratio": 1.5,
+    "reason": "feed price disagrees with displayed price"
+  },
+  {
+    "host": "glossier.com",
+    "currency": "USD",
+    "sampleHandle": "cloud-paint-sample-dawn-storm-spark-eve-sdg-go-live",
+    "sampleTitle": "Cloud Paint Sample - Dawn, Storm, Spark, Eve",
+    "samplePrice": "0.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "kosas.com",
+    "currency": "USD",
+    "sampleHandle": "conceal-set-duo",
+    "sampleTitle": "Conceal + Set Duo",
+    "samplePrice": "6900.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "harrys.com",
+    "currency": "USD",
+    "sampleHandle": "harrys-plus-blade-refills-tts",
+    "sampleTitle": "Harry's Plus Blade Refills",
+    "samplePrice": "15.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "dagnedover.com",
+    "currency": "USD",
+    "sampleHandle": "landon-carryall-small-storm-reset",
+    "sampleTitle": "Landon Carryall in Storm, Small",
+    "samplePrice": "21100.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "baboontothemoon.com",
+    "currency": "USD",
+    "sampleHandle": "8-birthday-go-bag-roller-small-35l",
+    "sampleTitle": "$8 BIRTHDAY Go-Bag Roller — Small (35L)",
+    "samplePrice": "8.00",
+    "variantCount": 1,
+    "reason": "no displayed price to verify against"
+  },
+  {
+    "host": "thuma.co",
+    "currency": "USD",
+    "sampleHandle": "signature-island-chaise-sectional",
+    "sampleTitle": "Signature Island Chaise Sectional",
+    "samplePrice": "0.00",
+    "variantCount": 8,
+    "reason": "no displayed price to verify against"
+  }
+]

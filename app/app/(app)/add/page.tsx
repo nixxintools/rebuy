@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -11,16 +11,17 @@ import Stack from "@mui/material/Stack";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import MenuItem from "@mui/material/MenuItem";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import LinearProgress from "@mui/material/LinearProgress";
 import InputAdornment from "@mui/material/InputAdornment";
+import Chip from "@mui/material/Chip";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { GRADIENT } from "@/lib/theme";
 
@@ -33,27 +34,48 @@ type Parsed = {
   confidence: Record<string, number>;
 };
 
-type Product = { handle: string; title: string; price: number; image: string | null; url: string };
+type Variant = { id: string; title: string; price: number; available: boolean };
+type Product = {
+  handle: string;
+  title: string;
+  price: number;
+  image: string | null;
+  variantId: string;
+  variants: Variant[];
+};
 
-const MERCHANTS = [
-  { id: "anker", name: "Anker", category: "Electronics" },
-  { id: "allbirds", name: "Allbirds", category: "Apparel" },
-  { id: "brooklinen", name: "Brooklinen", category: "Home goods" },
-];
+type MerchantSummary = {
+  id: string;
+  name: string;
+  category: string;
+  policy: { windowDays: number; feeUsd: number | null; cost: string; policyUrl: string; confidence: string };
+};
 
-const STEPS = ["Paste receipt", "Check details", "Pick the product"];
+const STEPS = ["Paste receipt", "Check the details", "Pick the exact product"];
 
 export default function AddReceipt() {
   const router = useRouter();
+  const [merchants, setMerchants] = useState<MerchantSummary[]>([]);
   const [merchantId, setMerchantId] = useState("anker");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchState, setSearchState] = useState<"idle" | "loading" | "empty" | "unavailable" | "ok">("idle");
   const [parsed, setParsed] = useState<Parsed | null>(null);
-  const [matches, setMatches] = useState<Product[] | null>(null);
+  const [matches, setMatches] = useState<Product[]>([]);
   const [chosen, setChosen] = useState<Product | null>(null);
+  const [variantId, setVariantId] = useState<string>("");
   const [query, setQuery] = useState("");
+  const searchSeq = useRef(0);
 
+  useEffect(() => {
+    fetch("/api/merchants/search?q=")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => j?.merchants && setMerchants(j.merchants))
+      .catch(() => {});
+  }, []);
+
+  const merchant = merchants.find((m) => m.id === merchantId);
   const step = !parsed ? 0 : !chosen ? 1 : 2;
 
   async function parse() {
@@ -66,11 +88,10 @@ export default function AddReceipt() {
         body: JSON.stringify({ text }),
       });
       const j = await r.json();
-      if (!r.ok) throw new Error(j.error);
+      if (!r.ok) throw new Error(j.error ?? "We couldn't read that receipt.");
       setParsed(j);
-      setQuery(j.productName);
-      setBusy("Finding it in the store…");
-      await search(j.productName);
+      setQuery(j.productName ?? "");
+      await search(j.productName ?? "");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -78,13 +99,33 @@ export default function AddReceipt() {
     }
   }
 
+  // Responses can land out of order; only the newest search is allowed to win.
   async function search(q: string) {
-    const s = await fetch(
-      `/api/merchants/search?merchant=${merchantId}&q=${encodeURIComponent(q)}`
-    );
-    const sj = await s.json();
-    setMatches(sj.products ?? []);
-    setChosen((sj.products ?? [])[0] ?? null);
+    if (!q.trim()) return;
+    const seq = ++searchSeq.current;
+    setSearchState("loading");
+    try {
+      const r = await fetch(
+        `/api/merchants/search?merchant=${merchantId}&q=${encodeURIComponent(q)}`
+      );
+      const j = await r.json().catch(() => ({}));
+      if (seq !== searchSeq.current) return;
+      if (!r.ok) {
+        setMatches([]);
+        setSearchState(j.unavailable ? "unavailable" : "empty");
+        return;
+      }
+      const products: Product[] = j.products ?? [];
+      setMatches(products);
+      setSearchState(products.length ? "ok" : "empty");
+    } catch {
+      if (seq === searchSeq.current) setSearchState("unavailable");
+    }
+  }
+
+  function pick(p: Product) {
+    setChosen(p);
+    setVariantId(p.variantId);
   }
 
   async function save() {
@@ -98,6 +139,7 @@ export default function AddReceipt() {
         body: JSON.stringify({
           merchantId,
           productHandle: chosen.handle,
+          variantId: variantId || chosen.variantId,
           orderId: parsed.orderId,
           purchasePrice: Number(parsed.purchasePrice),
           purchaseDate: parsed.purchaseDate,
@@ -115,7 +157,9 @@ export default function AddReceipt() {
   }
 
   const lowConfidence = (f: string) => (parsed?.confidence?.[f] ?? 1) < 0.8;
-  const gap = chosen && parsed ? Number(parsed.purchasePrice) - chosen.price : 0;
+  const selectedVariant = chosen?.variants.find((v) => v.id === variantId);
+  const effectivePrice = selectedVariant?.price ?? chosen?.price ?? 0;
+  const gap = parsed ? Number(parsed.purchasePrice) - effectivePrice : 0;
 
   return (
     <Stack spacing={3}>
@@ -124,11 +168,11 @@ export default function AddReceipt() {
           Track a purchase
         </Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          Paste the order confirmation — we read it and link it to the live store price.
+          Paste the order confirmation — we read it, then link it to the store&apos;s live price.
         </Typography>
       </Box>
 
-      <Stepper activeStep={step} alternativeLabel sx={{ mb: 1 }}>
+      <Stepper activeStep={step} alternativeLabel>
         {STEPS.map((s) => (
           <Step key={s}>
             <StepLabel>{s}</StepLabel>
@@ -140,22 +184,40 @@ export default function AddReceipt() {
         <Card>
           {busy && <LinearProgress />}
           <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <Typography sx={{ mb: 1.5, fontWeight: 500 }}>Where did you buy it?</Typography>
-            <ToggleButtonGroup
-              exclusive
+            <TextField
+              select
+              fullWidth
+              label="Where did you buy it?"
               value={merchantId}
-              onChange={(_, v) => v && setMerchantId(v)}
-              sx={{ mb: 3, flexWrap: "wrap", gap: 1, "& .MuiToggleButton-root": { borderRadius: "999px !important", border: "1px solid #e5e7eb !important", px: 2.5 } }}
+              onChange={(e) => {
+                setMerchantId(e.target.value);
+                setMatches([]);
+                setChosen(null);
+                setSearchState("idle");
+              }}
+              sx={{ mb: 1.5 }}
             >
-              {MERCHANTS.map((m) => (
-                <ToggleButton key={m.id} value={m.id}>
-                  {m.name}
-                  <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                    {m.category}
-                  </Typography>
-                </ToggleButton>
+              {merchants.map((m) => (
+                <MenuItem key={m.id} value={m.id}>
+                  {m.name} — {m.policy.windowDays} day return window
+                </MenuItem>
               ))}
-            </ToggleButtonGroup>
+            </TextField>
+            {merchant && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                {merchant.name} gives you{" "}
+                <b>{merchant.policy.windowDays} days</b> to return, which is how long Rebuy has to
+                catch a price drop.{" "}
+                {merchant.policy.feeUsd
+                  ? `Returns cost $${merchant.policy.feeUsd.toFixed(2)}.`
+                  : merchant.policy.cost === "free"
+                    ? "Returns are free."
+                    : "You pay return shipping."}{" "}
+                <a href={merchant.policy.policyUrl} target="_blank" rel="noreferrer">
+                  Their policy
+                </a>
+              </Typography>
+            )}
 
             <TextField
               label="Order confirmation email"
@@ -175,6 +237,7 @@ export default function AddReceipt() {
             >
               {busy ?? "Read receipt"}
             </Button>
+            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
           </CardContent>
         </Card>
       ) : (
@@ -191,7 +254,7 @@ export default function AddReceipt() {
                   value={parsed.orderId}
                   onChange={(e) => setParsed({ ...parsed, orderId: e.target.value })}
                   error={lowConfidence("orderId")}
-                  helperText={lowConfidence("orderId") ? "Please double-check this one." : " "}
+                  helperText={lowConfidence("orderId") ? "Worth double-checking." : " "}
                 />
                 <TextField
                   label="Price you paid"
@@ -200,10 +263,8 @@ export default function AddReceipt() {
                   value={parsed.purchasePrice}
                   onChange={(e) => setParsed({ ...parsed, purchasePrice: Number(e.target.value) })}
                   error={lowConfidence("purchasePrice")}
-                  helperText={lowConfidence("purchasePrice") ? "Please double-check this one." : " "}
-                  slotProps={{
-                    input: { startAdornment: <InputAdornment position="start">$</InputAdornment> },
-                  }}
+                  helperText={lowConfidence("purchasePrice") ? "Worth double-checking." : " "}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start">$</InputAdornment> } }}
                 />
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <TextField
@@ -221,9 +282,21 @@ export default function AddReceipt() {
                     value={parsed.returnDeadline ?? ""}
                     onChange={(e) => setParsed({ ...parsed, returnDeadline: e.target.value })}
                     slotProps={{ inputLabel: { shrink: true } }}
-                    helperText="Defaults to 30 days after purchase"
+                    helperText={
+                      parsed.returnDeadline
+                        ? "From your receipt."
+                        : merchant
+                          ? `Blank — we'll use ${merchant.name}'s published ${merchant.policy.windowDays} days.`
+                          : "Blank — we'll use the store's published window."
+                    }
                   />
                 </Stack>
+                {!parsed.returnDeadline && (
+                  <Alert severity="warning">
+                    Your receipt didn&apos;t state a return deadline. This date decides when Rebuy is
+                    allowed to spend, so if you know the real one, set it here.
+                  </Alert>
+                )}
               </Stack>
             </CardContent>
           </Card>
@@ -231,13 +304,12 @@ export default function AddReceipt() {
           <Card>
             <CardContent sx={{ p: { xs: 3, md: 4 } }}>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                Which product is it?
+                Which exact product is it?
               </Typography>
               <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5, mb: 2.5 }}>
-                Picked from {MERCHANTS.find((m) => m.id === merchantId)?.name}&apos;s live catalogue —
-                this is the price we&apos;ll watch.
+                Rebuy will buy exactly what you choose here, so pick the right size and colour.
               </Typography>
-              <Stack direction="row" spacing={1.5}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <TextField
                   fullWidth
                   size="small"
@@ -246,21 +318,33 @@ export default function AddReceipt() {
                   onKeyDown={(e) => e.key === "Enter" && search(query)}
                   placeholder="Search the store"
                 />
-                <Button variant="outlined" onClick={() => search(query)}>
+                <Button variant="outlined" onClick={() => search(query)} disabled={searchState === "loading"}>
                   Search
                 </Button>
               </Stack>
 
+              {searchState === "loading" && <LinearProgress sx={{ mt: 2 }} />}
+              {searchState === "unavailable" && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  <AlertTitle>{merchant?.name ?? "That store"} isn&apos;t responding</AlertTitle>
+                  This is a problem at their end, not with your search. Try again in a moment.
+                </Alert>
+              )}
+              {searchState === "empty" && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  No products matched &ldquo;{query}&rdquo;. Try a shorter search — just the model name
+                  usually works best.
+                </Alert>
+              )}
+
               <List sx={{ mt: 1 }}>
-                {(matches ?? []).map((p) => (
+                {matches.map((p) => (
                   <ListItemButton
                     key={p.handle}
                     selected={chosen?.handle === p.handle}
-                    onClick={() => setChosen(p)}
+                    onClick={() => pick(p)}
                     sx={{
-                      borderRadius: 3,
-                      mb: 1,
-                      border: "1px solid",
+                      borderRadius: 3, mb: 1, border: "1px solid",
                       borderColor: chosen?.handle === p.handle ? "primary.main" : "divider",
                     }}
                   >
@@ -269,33 +353,44 @@ export default function AddReceipt() {
                     </ListItemAvatar>
                     <ListItemText
                       primary={p.title}
-                      secondary="live price"
+                      secondary={p.variants.length > 1 ? `${p.variants.length} options` : "live price"}
                       slotProps={{ primary: { noWrap: true } }}
                     />
                     <Typography sx={{ fontWeight: 700, ml: 2 }}>${p.price.toFixed(2)}</Typography>
-                    {chosen?.handle === p.handle && (
-                      <CheckCircleIcon color="primary" sx={{ ml: 1.5 }} />
-                    )}
+                    {chosen?.handle === p.handle && <CheckCircleIcon color="primary" sx={{ ml: 1.5 }} />}
                   </ListItemButton>
                 ))}
-                {matches?.length === 0 && (
-                  <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
-                    No matches — try a shorter search, like just the model name.
-                  </Typography>
-                )}
               </List>
+
+              {chosen && chosen.variants.length > 1 && (
+                <TextField
+                  select
+                  fullWidth
+                  label="Which option did you buy?"
+                  value={variantId}
+                  onChange={(e) => setVariantId(e.target.value)}
+                  sx={{ mt: 1 }}
+                >
+                  {chosen.variants.map((v) => (
+                    <MenuItem key={v.id} value={v.id} disabled={!v.available}>
+                      {v.title} — ${v.price.toFixed(2)}
+                      {v.available ? "" : " (sold out)"}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
             </CardContent>
           </Card>
 
-          {gap > 0 && (
+          {chosen && gap > 0 && (
             <Alert severity="success">
-              It&apos;s selling for ${chosen!.price.toFixed(2)} right now — ${gap.toFixed(2)} below
-              what you paid. Rebuy can act on that as soon as you switch it on.
+              It&apos;s ${effectivePrice.toFixed(2)} right now — ${gap.toFixed(2)} below what you paid.
+              Rebuy can act on that as soon as you approve it.
             </Alert>
           )}
           {error && <Alert severity="error">{error}</Alert>}
 
-          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" } }}>
             <Button
               variant="contained"
               size="large"
@@ -303,13 +398,17 @@ export default function AddReceipt() {
               disabled={!!busy || !chosen}
               sx={{ background: GRADIENT }}
             >
-              {busy ?? "Start watching this price"}
+              {busy ?? "Save this purchase"}
             </Button>
+            {!chosen && (
+              <Chip label="Choose the exact product first" size="small" variant="outlined" />
+            )}
             <Button
               onClick={() => {
                 setParsed(null);
-                setMatches(null);
+                setMatches([]);
                 setChosen(null);
+                setSearchState("idle");
               }}
               sx={{ color: "text.secondary" }}
             >
@@ -318,7 +417,6 @@ export default function AddReceipt() {
           </Stack>
         </>
       )}
-      {error && !parsed && <Alert severity="error">{error}</Alert>}
     </Stack>
   );
 }

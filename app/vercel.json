@@ -1,3 +1,4 @@
 {
+  "regions": ["iad1"],
   "crons": [{ "path": "/api/cron/check-prices", "schedule": "0 6 * * *" }]
 }

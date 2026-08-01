@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchProducts, MERCHANTS } from "@/lib/merchants";
+import { searchProducts, MERCHANTS, MerchantUnavailableError } from "@/lib/merchants";
 import { requireApiUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,12 @@ export async function GET(req: NextRequest) {
     const products = await searchProducts(merchantId, q);
     return NextResponse.json({ merchants: MERCHANTS, products });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 502 });
+    // "The store is down" and "nothing matched" are different problems and the
+    // user needs to be told which one they have.
+    const unavailable = e instanceof MerchantUnavailableError;
+    return NextResponse.json(
+      { error: (e as Error).message, unavailable },
+      { status: unavailable ? 503 : 502 }
+    );
   }
 }

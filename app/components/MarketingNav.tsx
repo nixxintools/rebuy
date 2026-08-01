@@ -15,9 +15,9 @@ import { Wordmark } from "./Logo";
 import { GRADIENT } from "@/lib/theme";
 
 const LINKS = [
-  { href: "#how", label: "How it works" },
-  { href: "#features", label: "Features" },
-  { href: "#who", label: "Who it's for" },
+  { href: "/#how", label: "How it works" },
+  { href: "/merchants", label: "Stores" },
+  { href: "/#who", label: "Who it's for" },
 ];
 
 export default function MarketingNav() {

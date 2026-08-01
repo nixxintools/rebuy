@@ -53,22 +53,37 @@ model TrackedItem {
   productUrl      String?
   productHandle   String?
   variantId       String?
+  variantTitle    String?
   imageUrl        String?
   purchasePrice   Decimal      @db.Decimal(10, 2)
   currentPrice    Decimal      @db.Decimal(10, 2)
   rebuyPrice      Decimal?     @db.Decimal(10, 2)
   purchaseDate    DateTime
   returnDeadline  DateTime
+  /** Where returnDeadline came from: "receipt" or "merchant_policy". */
+  returnWindowSource String    @default("merchant_policy")
   status          String       @default("ingested")
   mandateId       String?
   sessionId       String?
+  /** Prava's transaction id for the completed charge — evidence, not inferred. */
+  chargeTransactionId String?
+  chargeReference String?
+  /** Deterministic idempotency counter; must not be derived from event counts. */
+  rebuyAttempts   Int          @default(0)
+  /** Order reference at the merchant, once the user confirms they placed it. */
+  merchantOrderRef String?
+  lastCheckedAt   DateTime?
+  mandateExpiresAt DateTime?
+  failureCode     String?
   parseConfidence Json?
   createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @default(now()) @updatedAt
   user            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   prices          PricePoint[]
   events          AgentEvent[]
 
   @@index([userId])
+  @@index([status])
 }
 
 model PricePoint {

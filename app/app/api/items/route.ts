@@ -3,14 +3,24 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireApiUser } from "@/lib/auth";
-import { getMerchant, fetchProduct } from "@/lib/merchants";
+import {
+  findMerchant,
+  fetchProduct,
+  canSpendAutonomously,
+  whyNotSpendable,
+  resolveReturnDeadline,
+  detectFinalSale,
+  MerchantUnavailableError,
+} from "@/lib/merchants";
+import { STATUS } from "@/lib/status";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const Body = z.object({
-  merchantId: z.string().default("anker"),
+  merchantId: z.string().min(1),
   productHandle: z.string().min(1),
+  variantId: z.string().nullish(),
   orderId: z.string().min(1),
   purchasePrice: z.number().positive(),
   purchaseDate: z.string().min(4),
@@ -40,22 +50,40 @@ export async function POST(req: NextRequest) {
     );
   }
   const b = parsed.data;
-  const merchant = getMerchant(b.merchantId);
 
-  // Link to the live catalogue entry so the monitor has a real price source.
-  const product = await fetchProduct(merchant.id, b.productHandle);
+  const merchant = findMerchant(b.merchantId);
+  if (!merchant) {
+    return NextResponse.json({ error: "We don't support that store yet." }, { status: 400 });
+  }
+
+  let product;
+  try {
+    product = await fetchProduct(merchant.id, b.productHandle, b.variantId ?? undefined);
+  } catch (e) {
+    if (e instanceof MerchantUnavailableError) {
+      return NextResponse.json({ error: e.message }, { status: 502 });
+    }
+    throw e;
+  }
+
+  // Something that can't be returned must never be rebought on the user's behalf.
+  const finalSale = detectFinalSale(product);
 
   const purchaseDate = new Date(b.purchaseDate);
-  const returnDeadline = b.returnDeadline
-    ? new Date(b.returnDeadline)
-    : new Date(purchaseDate.getTime() + 30 * 86400000);
+  const { deadline, source } = resolveReturnDeadline(
+    merchant,
+    purchaseDate,
+    b.returnDeadline ? new Date(b.returnDeadline) : null
+  );
+
+  const spendable = canSpendAutonomously(merchant) && !finalSale;
   const paid = new Prisma.Decimal(b.purchasePrice.toFixed(2));
   const live = new Prisma.Decimal(product.price.toFixed(2));
 
   const item = await prisma.trackedItem.create({
     data: {
       userId: user.id,
-      userEmail: user.email, // Prava's customer key — must stay in sync with the account
+      userEmail: user.email, // Prava's customer key — must track the account
       merchantId: merchant.id,
       retailerName: merchant.name,
       retailerUrl: `https://${merchant.domain}`,
@@ -65,12 +93,15 @@ export async function POST(req: NextRequest) {
       productUrl: product.url,
       productHandle: product.handle,
       variantId: product.variantId,
+      variantTitle: product.variantTitle,
       imageUrl: product.image,
       purchasePrice: paid,
       currentPrice: live,
       purchaseDate,
-      returnDeadline,
-      status: "ingested",
+      returnDeadline: deadline,
+      returnWindowSource: source,
+      lastCheckedAt: new Date(),
+      status: spendable ? STATUS.ingested : STATUS.watchOnly,
       parseConfidence: b.confidence ?? undefined,
       prices: { create: { price: live, source: "merchant_live" } },
       events: {
@@ -81,11 +112,19 @@ export async function POST(req: NextRequest) {
             paid: Number(paid),
             livePriceNow: product.price,
             merchant: merchant.name,
-            productUrl: product.url,
+            variant: product.variantTitle,
+            returnWindowDays: merchant.policy.windowDays,
+            returnWindowSource: source,
+            spendable,
+            blockedReason: finalSale ?? whyNotSpendable(merchant),
           },
         },
       },
     },
   });
-  return NextResponse.json(item, { status: 201 });
+
+  return NextResponse.json(
+    { ...item, blockedReason: finalSale ?? whyNotSpendable(merchant) },
+    { status: 201 }
+  );
 }

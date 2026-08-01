@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { loadOwnedItem } from "@/lib/owned";
 import { checkPrice } from "@/lib/agent";
+import { MerchantUnavailableError } from "@/lib/merchants";
 
 export const maxDuration = 60;
 
@@ -17,6 +18,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const updated = await prisma.trackedItem.findUnique({ where: { id } });
     return NextResponse.json({ item: updated, agentResult });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 502 });
+    const unavailable = e instanceof MerchantUnavailableError;
+    return NextResponse.json(
+      { error: (e as Error).message, unavailable },
+      { status: unavailable ? 503 : 502 }
+    );
   }
 }

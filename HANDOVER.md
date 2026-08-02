@@ -19,7 +19,7 @@ Only three things are mandatory, and all three need the user, not the agent.
    Nothing blocks this; the whole flow was rehearsed end to end.
 2. **Take five screenshots.** Order is at the bottom of [SUBMISSION.md](SUBMISSION.md). The
    first becomes the cover, and should be an item page in `purchase_authorized` showing the
-   guardrails and the "no order exists yet" card.
+   guardrails and the "checkout prepared, submission deliberately blocked" card.
 3. **Publish on Devfolio.** Copy is ready in [SUBMISSION.md](SUBMISSION.md). Sponsor tracks are
    claimed by naming them in "Technologies used". Publishing early is safe because it stays
    editable until the deadline, and only the team admin can submit.

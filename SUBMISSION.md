@@ -136,7 +136,7 @@ are real Prava sandbox transactions — none are mocked.
 
 ## Screenshot order (first becomes the cover)
 
-1. Item page in `purchase_authorized` — the guardrails and the honest "no order exists yet"
+1. Item page in `purchase_authorized` — the guardrails and the "checkout prepared, submission deliberately blocked" card
 2. `/merchants` — 67 stores ranked by recoverable window
 3. Dashboard with banked vs pending savings
 4. Payments — spend authority, transactions, billing

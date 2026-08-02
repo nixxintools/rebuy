@@ -23,9 +23,14 @@ Three things. All three need Nikhil, not an AI.
    to use. Nothing is blocking this.
 2. **Take five screenshots.** The list is at the bottom of [SUBMISSION.md](SUBMISSION.md).
    The first one becomes the cover image on Devfolio, so it should be the page that shows
-   the agent bought something and prepared the cart at Anker.
+   the agent bought something and prepared the cart at Anker. For the project logo on
+   Devfolio, upload `brand/rebuy-icon-512.png`.
 3. **Publish on Devfolio.** All the text is ready in [SUBMISSION.md](SUBMISSION.md).
-   Publish early — it stays editable until the deadline. Only the team admin can submit.
+   Publish early, it stays editable until the deadline. Only the team admin can submit.
+   There is also a separate write-up for the Localhost startup track in
+   [LOCALHOST-SUBMISSION.md](LOCALHOST-SUBMISSION.md), which has two short sections only
+   Nikhil can write: whether anyone has reacted to the product, and why he will keep
+   working on it.
 
 Nice to have, if there's time:
 
@@ -101,6 +106,20 @@ Totals: $46 saved and banked, $69 more in progress, $6.90 collected in fees.
 - The automatic price check runs once a day (the hosting plan's limit), plus whenever the
   user opens an item.
 
+## The logo and icon
+
+The icon is the blue-to-green rounded square with two circling arrows, meaning "buy it again".
+Master file is `brand/rebuy-icon.svg`. Ready-made pictures for uploading anywhere (Devfolio,
+social, app stores) are in the same folder at 512, 192 and 180 pixels.
+
+The website already uses it as its browser tab icon. If you change the design, replace
+`brand/rebuy-icon.svg`, copy it over `app/app/icon.svg`, and regenerate the PNGs with:
+
+```bash
+cd app
+node -e "const s=require('sharp'),f=require('fs');const v=f.readFileSync('../brand/rebuy-icon.svg');[['../brand/rebuy-icon-512.png',512],['../brand/rebuy-icon-192.png',192],['../brand/rebuy-icon-apple-180.png',180],['app/apple-icon.png',180]].forEach(([p,n])=>s(v,{density:400}).resize(n,n).png().toFile(p))"
+```
+
 ## Where things are in the code
 
 All in the `app` folder.
@@ -114,6 +133,7 @@ All in the `app` folder.
 | `lib/senso.ts` | The return-policy check and writing outcomes back |
 | `lib/ucp.ts` | Creating the real cart at the shop, and the deliberate stop |
 | `lib/billing.ts` | How we collect our fee |
+| `app/icon.svg` | The browser tab icon |
 
 Useful commands (run inside `app`):
 

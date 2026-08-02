@@ -83,11 +83,24 @@ export type CompletionResult =
  * Success is only reported when the merchant hands back an order id — a
  * response without one is a decline, however it is phrased.
  */
+export type ShippingDestination = {
+  first_name: string;
+  last_name: string;
+  street_address: string;
+  address_locality: string;
+  address_region: string;
+  postal_code: string;
+  address_country: string;
+};
+
+const INSTRUMENT_ID = "rebuy-prava-card";
+
 export async function completeUcpCheckout(opts: {
   endpoint: string;
   checkoutId: string;
   credentials: { token?: string; dynamicCvv?: string; expiryMonth?: string; expiryYear?: string };
   idempotencyKey: string;
+  destination?: ShippingDestination;
 }): Promise<CompletionResult> {
   if (!COMPLETE_CHECKOUT_ENABLED) {
     return { ok: false, stage: "disabled", code: "COMPLETION_DISABLED", message: "Completion is switched off." };
@@ -130,17 +143,37 @@ export async function completeUcpCheckout(opts: {
             },
             id: opts.checkoutId,
             checkout: {
+              // Shopify's documented shape: a list of instruments and a
+              // pointer to the chosen one. The credential sub-object is the
+              // one piece their public docs don't spell out — once we hold a
+              // Dev Dashboard token, tools/list returns the authoritative
+              // schema for this and we should read it rather than guess again.
               payment: {
-                selected_handler_id: "shopify.card",
-                instrument: { type: "card" },
-                credential: {
-                  type: "card",
-                  number: opts.credentials.token,
-                  security_code: opts.credentials.dynamicCvv,
-                  expiry_month: opts.credentials.expiryMonth,
-                  expiry_year: opts.credentials.expiryYear,
-                },
+                instruments: [
+                  {
+                    id: INSTRUMENT_ID,
+                    type: "card",
+                    handler_id: "shopify.card",
+                    credential: {
+                      type: "card",
+                      number: opts.credentials.token,
+                      security_code: opts.credentials.dynamicCvv,
+                      expiry_month: opts.credentials.expiryMonth,
+                      expiry_year: opts.credentials.expiryYear,
+                    },
+                  },
+                ],
+                selected_instrument_id: INSTRUMENT_ID,
               },
+              // Shopify refuses a checkout with nowhere to ship to. We only
+              // send this when we have one; we do not invent an address.
+              ...(opts.destination
+                ? {
+                    fulfillment: {
+                      methods: [{ type: "shipping", destinations: [opts.destination] }],
+                    },
+                  }
+                : {}),
             },
           },
         },

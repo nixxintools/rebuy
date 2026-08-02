@@ -155,6 +155,13 @@ export async function completeUcpCheckout(opts: {
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${bearer}`,
+        // An authenticated call is refused outright without this: "Missing
+        // required buyer IP header." The merchant wants the buyer's address,
+        // not ours, to price and localise. We do not capture the user's IP at
+        // purchase time — the agent acts on a schedule, hours after they last
+        // opened the app — so this is configurable and defaults to a US
+        // address, which matches where our functions and merchants live.
+        "Shopify-Buyer-IP": process.env.UCP_BUYER_IP ?? "23.235.33.229",
       },
       signal: AbortSignal.timeout(30000),
       body: JSON.stringify({

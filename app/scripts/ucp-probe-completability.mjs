@@ -42,6 +42,8 @@ for (const file of [".env", ".env.local"]) {
   }
 }
 
+const BUYER_IP = process.env.UCP_BUYER_IP ?? "23.235.33.229";
+
 let BEARER = null;
 if (process.env.SHOPIFY_CLIENT_ID && process.env.SHOPIFY_CLIENT_SECRET) {
   const r = await fetch("https://api.shopify.com/auth/access_token", {
@@ -88,7 +90,9 @@ async function probe(domain) {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
-      ...(BEARER ? { Authorization: `Bearer ${BEARER}` } : {}),
+      // An authenticated call is refused outright without this — the merchant
+      // needs the buyer's IP, not the agent's, to price and localise.
+      ...(BEARER ? { Authorization: `Bearer ${BEARER}`, "Shopify-Buyer-IP": BUYER_IP } : {}),
     },
     body: JSON.stringify({
       jsonrpc: "2.0",

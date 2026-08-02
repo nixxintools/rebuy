@@ -95,6 +95,33 @@ export type ShippingDestination = {
 
 const INSTRUMENT_ID = "rebuy-prava-card";
 
+/**
+ * Merchants want the name split in two. We store it as the user typed it, so
+ * split on the last space and treat a single word as the surname being absent
+ * rather than inventing one.
+ */
+export function destinationFromUser(u: {
+  shipName: string | null;
+  shipStreet: string | null;
+  shipLocality: string | null;
+  shipRegion: string | null;
+  shipPostalCode: string | null;
+  shipCountry: string | null;
+}): ShippingDestination | undefined {
+  if (!u.shipName || !u.shipStreet || !u.shipCountry) return undefined;
+  const parts = u.shipName.trim().split(/\s+/);
+  const last = parts.length > 1 ? parts.pop()! : "";
+  return {
+    first_name: parts.join(" "),
+    last_name: last,
+    street_address: u.shipStreet,
+    address_locality: u.shipLocality ?? "",
+    address_region: u.shipRegion ?? "",
+    postal_code: u.shipPostalCode ?? "",
+    address_country: u.shipCountry,
+  };
+}
+
 export async function completeUcpCheckout(opts: {
   endpoint: string;
   checkoutId: string;
@@ -251,6 +278,7 @@ export async function createUcpCheckout(opts: {
   variantId: string;
   buyerEmail: string;
   itemId?: string;
+  destination?: ShippingDestination;
 }): Promise<UcpCheckout | null> {
   const endpoint = await discoverUcpEndpoint(opts.merchantDomain);
   if (!endpoint) return null;
@@ -277,6 +305,15 @@ export async function createUcpCheckout(opts: {
                 { quantity: 1, item: { id: `gid://shopify/ProductVariant/${opts.variantId}` } },
               ],
               buyer: { email: opts.buyerEmail },
+              // Given early, the merchant can price shipping and tax straight
+              // away instead of holding the checkout open for an address.
+              ...(opts.destination
+                ? {
+                    fulfillment: {
+                      methods: [{ type: "shipping", destinations: [opts.destination] }],
+                    },
+                  }
+                : {}),
             },
           },
         },

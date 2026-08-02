@@ -19,6 +19,15 @@ model User {
   /// Linq's id for our conversation with this user. Its absence is what tells us
   /// the next message is the first one, which may not carry a link.
   linqChatId String?
+  /// Where a replacement gets shipped. A merchant will not complete a checkout
+  /// without somewhere to send it. Stored whole or not at all — a half-filled
+  /// address is worse than none, because it fails at the last step.
+  shipName        String?
+  shipStreet      String?
+  shipLocality    String?
+  shipRegion      String?
+  shipPostalCode  String?
+  shipCountry     String?
   /// Standing authorization that lets us collect our share of banked savings.
   feeMandateId      String?
   feeMandateCapUsd  Decimal?  @db.Decimal(10, 2)

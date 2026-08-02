@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import StatusChip from "@/components/StatusChip";
 import TextAlerts from "@/components/TextAlerts";
+import ShippingAddress from "@/components/ShippingAddress";
 import { GRADIENT } from "@/lib/theme";
 import { summariseSavings, statusMeta, netSaving, PENDING_SAVINGS_STATUSES } from "@/lib/status";
 
@@ -160,6 +161,8 @@ export default async function Dashboard() {
           </List>
         </Card>
       )}
+
+      <ShippingAddress />
 
       <TextAlerts />
 

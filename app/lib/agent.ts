@@ -11,7 +11,12 @@ import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
 import { verifyReturnable, recordOutcome, sensoConfigured } from "./senso";
-import { createUcpCheckout, completeUcpCheckout, COMPLETE_CHECKOUT_ENABLED } from "./ucp";
+import {
+  createUcpCheckout,
+  completeUcpCheckout,
+  destinationFromUser,
+  COMPLETE_CHECKOUT_ENABLED,
+} from "./ucp";
 import {
   notifyPurchaseAuthorized,
   notifyOrderPlaced,
@@ -270,11 +275,18 @@ export async function executeRebuy(itemId: string) {
   // in sandbox.
   if (item.variantId) {
     const merchantDomain = item.retailerUrl.replace(/^https?:\/\//, "");
+    // A checkout with nowhere to ship to can never be completed. We send the
+    // address when the user has given us one and leave it out when they
+    // haven't, rather than making one up.
+    const owner = item.userId
+      ? await prisma.user.findUnique({ where: { id: item.userId } })
+      : null;
     const ucp = await createUcpCheckout({
       merchantDomain,
       variantId: item.variantId,
       buyerEmail: item.userEmail,
       itemId,
+      destination: owner ? destinationFromUser(owner) : undefined,
     });
     if (ucp) {
       await prisma.trackedItem.update({
@@ -290,6 +302,7 @@ export async function executeRebuy(itemId: string) {
           checkoutId: ucp.checkoutId,
           credentials: (charge.credentials ?? {}) as Record<string, string>,
           idempotencyKey: reference,
+          destination: owner ? destinationFromUser(owner) : undefined,
         });
         await prisma.agentEvent.create({
           data: {

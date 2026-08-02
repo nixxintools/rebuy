@@ -12,6 +12,7 @@ import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
 import { verifyReturnable, recordOutcome, sensoConfigured } from "./senso";
 import { createUcpCheckout } from "./ucp";
+import { notifyPurchaseAuthorized, notifyChargeFailed, notifyReturnBlocked } from "./notify";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -127,6 +128,7 @@ export async function executeRebuy(itemId: string) {
         where: { id: itemId },
         data: { status: STATUS.watchOnly, failureCode: "RETURN_NOT_POSSIBLE" },
       });
+      await notifyReturnBlocked(item);
       return { ok: false, code: "RETURN_NOT_POSSIBLE" };
     }
   }
@@ -188,6 +190,7 @@ export async function executeRebuy(itemId: string) {
       await prisma.agentEvent.create({
         data: { itemId, type: "rebuy_failed", detail: { code: e.code, responseId: e.responseId } },
       });
+      await notifyChargeFailed(item, e.code);
       return { ok: false, code: e.code };
     }
     throw e;
@@ -213,6 +216,7 @@ export async function executeRebuy(itemId: string) {
     await prisma.agentEvent.create({
       data: { itemId, type: "rebuy_failed", detail: JSON.parse(JSON.stringify(charge)) },
     });
+    await notifyChargeFailed(item, code);
     return { ok: false, code };
   }
 
@@ -267,6 +271,12 @@ export async function executeRebuy(itemId: string) {
       });
     }
   }
+
+  // Tell the user their money moved. This happens after the checkout is
+  // prepared so that the link in the message lands on a page that can already
+  // hand them the cart. `item` predates the charge, so pass the price we
+  // actually charged rather than its stale null.
+  await notifyPurchaseAuthorized({ ...item, rebuyPrice: amount });
 
   // Write the result back so the next decision about this merchant is informed
   // by what actually happened, not only by the published policy.

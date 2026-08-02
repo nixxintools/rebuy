@@ -54,6 +54,10 @@ reporting a failure.
   `Stack` onto `sx`. **Prisma 7** removed `url` from `datasource`, so we pin Prisma 6.
 - Server components cannot pass a component reference to a client component. Use
   `components/Links.tsx`.
+- **Linq's first message to anyone cannot contain a link**, so `lib/notify.ts` only appends one
+  once `User.linqChatId` exists, which is proof we already have a thread with that person.
+  A reply of STOP must silence us immediately; that check lives in `notifyOnce()` so no caller
+  can skip it.
 
 ## Secrets
 
@@ -61,6 +65,9 @@ Never in the repo. They live in Vercel project env and `app/.env.local`, which i
 Scan the staged diff before committing. Keys currently set: `PRAVA_SECRET_KEY`,
 `NEXT_PUBLIC_PRAVA_PK`, `OPENAI_API_KEY`, `DATABASE_URL`, `CRON_SECRET`, `RESEND_API_KEY`,
 `SENSO_API_KEY`, `UNLIMITED_REBUY_EMAILS`.
+
+Not set yet, and texting stays completely off until both are: `LINQ_API_KEY` and
+`LINQ_WEBHOOK_SECRET`. `LINQ_FROM_NUMBER` is `+12062619826`.
 
 ## Verifying
 

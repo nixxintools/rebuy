@@ -12,6 +12,13 @@ model User {
   email     String        @unique
   name      String?
   createdAt DateTime      @default(now())
+  /// E.164 mobile number for agent updates over Linq. Null means texting is off.
+  phone     String?
+  /// Set the moment the user replies STOP. Nothing is ever sent while this is true.
+  smsOptOut Boolean       @default(false)
+  /// Linq's id for our conversation with this user. Its absence is what tells us
+  /// the next message is the first one, which may not carry a link.
+  linqChatId String?
   /// Standing authorization that lets us collect our share of banked savings.
   feeMandateId      String?
   feeMandateCapUsd  Decimal?  @db.Decimal(10, 2)
@@ -20,6 +27,42 @@ model User {
   sessions   Session[]
   tokens     LoginToken[]
   feeCharges FeeCharge[]
+
+  @@index([phone])
+}
+
+/// One text per item per kind of news. The unique index is the whole point: a
+/// retried cron run or a second call into executeRebuy must not tell the user
+/// twice that their money was spent.
+model Notification {
+  id        String   @id @default(cuid())
+  itemId    String?
+  userId    String?
+  /// e.g. "purchase_authorized". Matches the agent event that caused it.
+  kind      String
+  channel   String   @default("linq")
+  /// "sent" only when Linq accepted it. Anything else stays "failed" and says why.
+  status    String   @default("pending")
+  body      String
+  messageId String?
+  /// Which of iMessage, RCS or SMS actually carried it, as Linq reported it.
+  protocol  String?
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@unique([itemId, kind])
+  @@index([userId])
+}
+
+/// Inbound Linq events, keyed by Linq's own event id. Delivery is at-least-once,
+/// so the id is the primary key and a repeat insert is the de-duplication.
+model LinqEvent {
+  id        String   @id
+  type      String
+  fromPhone String?
+  body      String?
+  payload   Json?
+  at        DateTime @default(now())
 }
 
 /// One billing run per user per period. Fees accrue only on savings the user has

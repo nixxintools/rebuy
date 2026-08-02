@@ -32,6 +32,17 @@ Three things. All three need Nikhil, not an AI.
    Nikhil can write: whether anyone has reacted to the product, and why he will keep
    working on it.
 
+4. **Switch on the texting.** The code is written, built and tested, but it stays completely
+   off until two values are filled in. Get them from https://dashboard.linqapp.com:
+   - `LINQ_API_KEY` — copy it from the dashboard.
+   - `LINQ_WEBHOOK_SECRET` — you get this by running `node scripts/linq-webhook.mjs` inside
+     `app` once the key is set. That registers our address with Linq and prints the secret.
+
+   Put both into Vercel (and `app/.env.local` if you want it working on your machine), then
+   deploy. Until they're set, the "Get a text when the agent acts" card doesn't even appear,
+   and nothing tries to send. The agent's number is +12062619826, and the sandbox for it
+   expires 9 August.
+
 Nice to have, if there's time:
 
 - **Set up email properly.** Sign-in emails currently only reach Nikhil's own address.
@@ -58,6 +69,14 @@ after subtracting what it costs to send the original back — it does four thing
 3. Goes to the shop's website and fills a real shopping cart with the exact item.
 4. Stops just before pressing "place order" — on purpose, because the card is test money.
    The screen explains this. In a live version, one setting removes the stop.
+
+If the user has given us their mobile number, the agent texts them the moment it spends —
+over iMessage, or RCS, or plain SMS, whichever their phone takes. The text says what dropped,
+that a card now exists, that **nothing has been ordered yet**, and what they keep if they
+send the original back. It also texts when it tried and the payment failed, and when it found
+a drop but refused to spend because the item can't be returned. They can reply STATUS to hear
+where things stand, or STOP to end it. That runs through Linq; see point 4 above for how to
+switch it on.
 
 The user then finishes the purchase, sends the original back, and confirms when the refund
 arrives. Only then does the saving count, and only then do we take our 15% share — which
@@ -133,6 +152,8 @@ All in the `app` folder.
 | `lib/senso.ts` | The return-policy check and writing outcomes back |
 | `lib/ucp.ts` | Creating the real cart at the shop, and the deliberate stop |
 | `lib/billing.ts` | How we collect our fee |
+| `lib/notify.ts` | The exact words the agent texts, and every reason not to send |
+| `lib/linq.ts` | Talking to Linq, and checking inbound messages are genuine |
 | `app/icon.svg` | The browser tab icon |
 
 Useful commands (run inside `app`):

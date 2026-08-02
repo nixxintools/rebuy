@@ -100,6 +100,10 @@ model TrackedItem {
   rebuyAttempts   Int          @default(0)
   /** Order reference at the merchant, once the user confirms they placed it. */
   merchantOrderRef String?
+  /// Real checkout the agent created at the merchant over UCP. Completion is
+  /// deliberately blocked in sandbox; see lib/ucp.ts.
+  ucpCheckoutId    String?
+  ucpContinueUrl   String?
   lastCheckedAt   DateTime?
   mandateExpiresAt DateTime?
   failureCode     String?

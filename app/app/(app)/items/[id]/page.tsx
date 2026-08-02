@@ -56,6 +56,8 @@ type ItemDetail = {
   mandateExpiresAt: string | null;
   chargeTransactionId: string | null;
   merchantOrderRef: string | null;
+  ucpCheckoutId: string | null;
+  ucpContinueUrl: string | null;
   failureCode: string | null;
   lastCheckedAt: string | null;
   productUrl: string | null;
@@ -75,6 +77,7 @@ const EVENT_COPY: Record<string, string> = {
   mandate_charge: "Charged your authorization and issued a single-use card",
   charge_reported: "Charge outcome reported to the card network",
   purchase_authorized: "Money reserved and single-use card issued",
+  ucp_checkout_created: "Created a real checkout at the merchant — final submission deliberately blocked",
   order_placed: "You confirmed the replacement was ordered",
   return_started: "You confirmed the original is on its way back",
   refund_confirmed: "You confirmed the refund arrived — saving banked",
@@ -261,14 +264,36 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
 
             {item.status === STATUS.purchaseAuthorized && (
               <Stack spacing={2}>
-                <Alert severity="warning">
-                  <AlertTitle>No order exists yet</AlertTitle>
-                  Rebuy reserved ${Number(item.rebuyPrice).toFixed(2)} and issued a single-use card, but
-                  it cannot place the order for you. Buy the item at {item.retailerName} using that
-                  card, then confirm below. <b>Don&apos;t return the original until you have.</b>
-                </Alert>
+                {item.ucpCheckoutId ? (
+                  <Alert severity="info">
+                    <AlertTitle>Checkout prepared — order deliberately not placed</AlertTitle>
+                    Rebuy reserved ${Number(item.rebuyPrice).toFixed(2)} on a single-use card and
+                    created a real checkout at {item.retailerName} for your exact item. The final
+                    submission is blocked on purpose: this is a sandbox card, and firing a live
+                    order at a real store with it would be wrong. In production this is one
+                    switch. Finish the checkout yourself, then confirm below.{" "}
+                    <b>Don&apos;t return the original until you have.</b>
+                  </Alert>
+                ) : (
+                  <Alert severity="warning">
+                    <AlertTitle>No order exists yet</AlertTitle>
+                    Rebuy reserved ${Number(item.rebuyPrice).toFixed(2)} and issued a single-use card, but
+                    it hasn&apos;t placed the order. Buy the item at {item.retailerName} using that
+                    card, then confirm below. <b>Don&apos;t return the original until you have.</b>
+                  </Alert>
+                )}
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                  {item.variantId && (
+                  {item.ucpContinueUrl ? (
+                    <Button
+                      variant="contained"
+                      href={item.ucpContinueUrl}
+                      target="_blank"
+                      endIcon={<OpenInNewIcon />}
+                      sx={{ background: GRADIENT }}
+                    >
+                      Open the prepared checkout
+                    </Button>
+                  ) : item.variantId ? (
                     <Button
                       variant="contained"
                       href={`${item.retailerUrl}/cart/${item.variantId}:1`}
@@ -277,6 +302,15 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
                       sx={{ background: GRADIENT }}
                     >
                       Open the cart at {item.retailerName}
+                    </Button>
+                  ) : null}
+                  {!item.ucpCheckoutId && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => call(`/api/items/${item.id}/prepare-checkout`, undefined, "Preparing checkout…")}
+                      disabled={!!busy}
+                    >
+                      Prepare the checkout for me
                     </Button>
                   )}
                   <Button

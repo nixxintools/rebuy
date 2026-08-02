@@ -11,6 +11,7 @@ import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
 import { verifyReturnable, recordOutcome, sensoConfigured } from "./senso";
+import { createUcpCheckout } from "./ucp";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -247,6 +248,26 @@ export async function executeRebuy(itemId: string) {
       },
     },
   });
+  // With the money reserved, create the real checkout at the merchant over UCP:
+  // exact variant, buyer attached, card handler negotiated. One guarded call
+  // short of a placed order — see lib/ucp.ts for why completion stays blocked
+  // in sandbox.
+  if (item.variantId) {
+    const merchantDomain = item.retailerUrl.replace(/^https?:\/\//, "");
+    const ucp = await createUcpCheckout({
+      merchantDomain,
+      variantId: item.variantId,
+      buyerEmail: item.userEmail,
+      itemId,
+    });
+    if (ucp) {
+      await prisma.trackedItem.update({
+        where: { id: itemId },
+        data: { ucpCheckoutId: ucp.checkoutId, ucpContinueUrl: ucp.continueUrl },
+      });
+    }
+  }
+
   // Write the result back so the next decision about this merchant is informed
   // by what actually happened, not only by the published policy.
   if (sensoConfigured()) {

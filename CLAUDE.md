@@ -5,6 +5,9 @@ behalf, so the standards below are not style preferences.
 
 **Read [HANDOVER.md](HANDOVER.md) first** for current state and what is outstanding.
 
+**Talk to Nikhil in plain, direct English.** Short sentences. Say what things do, not what
+they're called. No jargon, no dense compressed phrasing. He has made this a standing rule.
+
 ## The rule that matters most
 
 **Never claim something the code cannot evidence.** An earlier build told users "Repurchase

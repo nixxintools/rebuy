@@ -1,114 +1,133 @@
 # Handover
 
-Written 2026-08-02, roughly 15 hours before the submission deadline.
+Written August 2, about 15 hours before the deadline.
 
-**Deadline:** Aug 2, 3:00 PM PT / Aug 3, 3:30 AM IST. The Devfolio page also shows a later
-7:00 PM PT time; treat 3:00 PM PT as real.
+**Deadline:** August 2, 3:00 PM Pacific time — that's August 3, 3:30 AM in India. Devfolio
+also shows a later time in one place; trust the earlier one.
 
-**Live:** https://rebuy.upthink.app · **Repo:** https://github.com/nixxintools/rebuy
-Working tree is clean and pushed.
+**Live site:** https://rebuy.upthink.app · **Code:** https://github.com/nixxintools/rebuy
+Everything is committed and pushed.
+
+**A rule for whoever picks this up:** Nikhil is not a developer. Write to him in plain,
+direct English. Short sentences. Say what things do, not what they're called. He has
+called out jargon-heavy updates twice and made this a standing rule.
 
 ---
 
-## What still has to happen
+## What still needs to happen
 
-Only three things are mandatory, and all three need the user, not the agent.
+Three things. All three need Nikhil, not an AI.
 
-1. **Record the demo video.** Script with stage directions is in
-   [VIDEO-SCRIPT.md](VIDEO-SCRIPT.md), including the receipt to paste and the card to use.
-   Nothing blocks this; the whole flow was rehearsed end to end.
-2. **Take five screenshots.** Order is at the bottom of [SUBMISSION.md](SUBMISSION.md). The
-   first becomes the cover, and should be an item page in `purchase_authorized` showing the
-   guardrails and the "checkout prepared, submission deliberately blocked" card.
-3. **Publish on Devfolio.** Copy is ready in [SUBMISSION.md](SUBMISSION.md). Sponsor tracks are
-   claimed by naming them in "Technologies used". Publishing early is safe because it stays
-   editable until the deadline, and only the team admin can submit.
+1. **Record the demo video.** The full script, with what to click and what to say, is in
+   [VIDEO-SCRIPT.md](VIDEO-SCRIPT.md). It includes the receipt to paste and the test card
+   to use. Nothing is blocking this.
+2. **Take five screenshots.** The list is at the bottom of [SUBMISSION.md](SUBMISSION.md).
+   The first one becomes the cover image on Devfolio, so it should be the page that shows
+   the agent bought something and prepared the cart at Anker.
+3. **Publish on Devfolio.** All the text is ready in [SUBMISSION.md](SUBMISSION.md).
+   Publish early — it stays editable until the deadline. Only the team admin can submit.
 
-Optional, in rough value order:
+Nice to have, if there's time:
 
-- **Verify `upthink.app` in Resend.** Sign-in email currently sends from `onboarding@resend.dev`,
-  which Resend only delivers to the account owner's own address. A judge signing in with their
-  own email gets nothing, and the on-screen link fallback is switched off. A few DNS records at
-  Namecheap fixes it.
-- **Request Prava production access** by emailing support@prava.space. Not needed for judging,
-  and switching the demo to production would spend real money, so request it as a signal only.
-- **Move to `rebuyit.store`** after submission. Untested against Prava's origin validation; the
-  API key was registered with `rebuy.upthink.app`, so test a callback before switching.
+- **Set up email properly.** Sign-in emails currently only reach Nikhil's own address.
+  A judge trying to sign in with their own email gets nothing. Fixing it means adding a
+  few DNS records for upthink.app in the Resend dashboard and Namecheap.
+- **Ask Prava for production access** (email support@prava.space). Not needed for judging.
+  Don't switch the demo to production — it would spend real money.
+- **The domain rebuyit.store** — Nikhil wants to buy it. Do this after submission, and
+  test that Prava still works on the new domain before switching anything.
 
-## What is built and verified
+## What the product does now
 
-Real UCP checkouts now exist at Anker for both in-flight items (ids on the items, buttons in
-the UI). Five real Prava sandbox transactions: three autonomous rebuys (Anker $39.99, Allbirds $105,
-Taylor Stitch $228), a fourth rebuy gated by Senso (Anker $69.99,
-`txn_01KZ0K7W6YG8AW8J224SPRZ7JZ`), and one fee collection of $6.90
-(`txn_01KZ0EPJFZQ7BMRKD29V5PDAS5`). None are mocked.
+A user pastes an order confirmation email. AI reads it. The user picks the exact product
+they bought from the shop's live catalogue. They approve the agent once with their
+fingerprint, with hard limits: this one shop, never more than they originally paid, one
+purchase, and the permission expires on its own.
 
-- **Honest state machine** (`lib/status.ts`): `purchase_authorized` means money reserved and a
-  single-use card issued, with no merchant order. The funnel to `refund_confirmed` is
-  user-confirmed. Savings count only when banked.
-- **67-merchant registry** (`lib/merchant-registry.ts`): every price feed probed from `iad1` and
-  every return policy read from the merchant's own page with source URL and date. Ranked
-  publicly at `/merchants`.
-- **Senso** (`lib/senso.ts`): all 67 policies ingested as verified knowledge. The agent asks
-  whether an item can be returned before charging, records the cited answer in the audit trail,
-  and writes the outcome back afterwards. Blocking logic tested against real answers.
-- **Billing** (`lib/billing.ts`): a second Prava mandate scoped to Rebuy. First rebuy free, then
-  billing required. Billed in arrears on banked savings only, one charge per period, capped at
-  $15/month with excess waived.
-- **Auth**: passwordless magic link, sessions hashed, item routes 404 on someone else's id.
+The agent then watches the shop's real price. When the price falls enough to be worth it —
+after subtracting what it costs to send the original back — it does four things on its own:
 
-## Current data
+1. Checks the shop's return policy through Senso (a knowledge service) and records the
+   answer with its source.
+2. Charges the pre-approved permission through Prava, which issues a one-time card.
+3. Goes to the shop's website and fills a real shopping cart with the exact item.
+4. Stops just before pressing "place order" — on purpose, because the card is test money.
+   The screen explains this. In a live version, one setting removes the stop.
 
-| Merchant | Status | Paid | Rebought |
+The user then finishes the purchase, sends the original back, and confirms when the refund
+arrives. Only then does the saving count, and only then do we take our 15% share — which
+we collect through Prava too, capped at $15 a month no matter how much we save them. The
+first saving is free.
+
+## Proof it all works
+
+Five real transactions on Prava's test system, none faked:
+
+- Three automatic repurchases: Anker $39.99, Allbirds $105, Taylor Stitch $228
+- One repurchase that went through the Senso policy check first: Anker $69.99
+- One fee collection: $6.90
+
+Real shopping carts exist at Anker right now for the two open Anker purchases — open
+either item in the app and click "Open the prepared checkout" to see one. Carts expire;
+the "Prepare the checkout for me" button makes a fresh one.
+
+There are also 67 shops in the registry, each with its return policy read from the shop's
+own website, with a link to the source. Two purchases in the demo data are deliberately
+blocked: a Graza item (they take no returns at all) and a Brooklinen "Last Call" item
+(final sale). **Keep these — they show the product refusing to spend money the user could
+never get back, which is the most convincing thing in it.**
+
+## The current purchases in the demo account
+
+| Shop | Where it stands | Paid | Rebought at |
 |---|---|---|---|
-| Anker | purchase_authorized | $114.99 | $69.99 |
-| Anker | purchase_authorized | $59.99 | $39.99 |
-| Taylor Stitch | purchase_authorized | $250 | $228 |
-| Allbirds | refund_confirmed | $160 | $105 |
-| Brooklinen | watch_only | $120 | blocked, Last Call is final sale |
-| Graza | expired | $40 | blocked, no returns accepted |
+| Anker | bought, cart prepared, waiting on user | $114.99 | $69.99 |
+| Anker | bought, cart prepared, waiting on user | $59.99 | $39.99 |
+| Taylor Stitch | bought, waiting on user | $250 | $228 |
+| Allbirds | done — refund confirmed | $160 | $105 |
+| Brooklinen | watch only (final sale item) | $120 | — |
+| Graza | expired (no returns possible) | $40 | — |
 
-Totals: $46 banked, $69 pending, $6.90 collected in fees.
+Totals: $46 saved and banked, $69 more in progress, $6.90 collected in fees.
 
-The Graza and Brooklinen rows are worth keeping. They are the registry visibly refusing to spend
-where a return is impossible, which is the most persuasive thing in the product.
+## Honest limitations (also stated in the product and submission)
 
-## Known limitations, stated deliberately
+- The final "place order" step is deliberately switched off. The switch is the
+  `UCP_COMPLETE_CHECKOUT` setting; leaving it unset keeps the stop in place.
+- Returns aren't filed automatically — the user is sent to the shop with the deadline.
+- Spotting final-sale items works by keywords in the product name. It will miss some cases.
+- Return deadlines are counted from the purchase date even when a shop counts from
+  delivery. That errs on the safe side, which is why it was left.
+- The automatic price check runs once a day (the hosting plan's limit), plus whenever the
+  user opens an item.
 
-- **The final checkout submission is deliberately blocked.** The agent now creates a real
-  checkout at the merchant over UCP (`lib/ucp.ts`): published profile at
-  `/.well-known/ucp-agent-profile`, capability negotiation, exact variant, card handler.
-  `complete_checkout` is guarded behind `UCP_COMPLETE_CHECKOUT` (unset = blocked) because the
-  Prava card is a sandbox credential and a live order at a real store with test money would be
-  wrong. Production lifts the guard. The earlier "every wire format rejected" finding was our
-  own error — the profile lacked a `capabilities` section, and the profile URI belongs at
-  `params.arguments.meta["ucp-agent"].profile` on `tools/call`, never on `initialize`.
-- **Returns are not auto-filed.** The user is routed with the deadline and reason.
-- **`detectFinalSale` is keyword-based**, not per-merchant. The registry holds richer rules than
-  the matcher uses. A reviewer flagged this; it will miss cases like Peak Design apparel.
-- **Return window start dates are approximated.** Many policies run from delivery, we compute
-  from purchase. That is the conservative direction, which is why it was left.
-- **Cron runs daily** (Vercel Hobby ceiling), plus an on-view check when the last one is stale.
-  Landing copy was rewritten to match.
+## Where things are in the code
 
-## Useful commands
+All in the `app` folder.
+
+| File | What it holds |
+|---|---|
+| `lib/status.ts` | Every state a purchase can be in, and the only savings math |
+| `lib/merchant-registry.ts` | The 67 shops and their verified return policies |
+| `lib/agent.ts` | The buying decision and the charge |
+| `lib/prava.ts` | Talking to Prava |
+| `lib/senso.ts` | The return-policy check and writing outcomes back |
+| `lib/ucp.ts` | Creating the real cart at the shop, and the deliberate stop |
+| `lib/billing.ts` | How we collect our fee |
+
+Useful commands (run inside `app`):
 
 ```bash
-cd app
-npm run build                      # always green before deploying
-vercel --prod --yes
-npx prisma db push                 # schema changes; never --force-reset, it holds real transactions
-node scripts/build-senso-corpus.mjs "rebuy_session=<cookie>"   # regenerate Senso docs
+npm run build          # must pass before deploying
+vercel --prod --yes    # deploy
 ```
 
-Signed-in API checks use a session cookie jar at `/tmp/cj.txt`. If it expires, mint a login token
-directly in the database rather than weakening the production auth config.
+Never run `prisma db push --force-reset` — it wipes the database, which holds the real
+transactions.
 
-## Outstanding review findings
+## Known rough edges from the last code review
 
-An independent Codex review (read-only) raised nine P0s. The ones that could cost a user money
-are fixed: return costs entering the decision, unevidenced charge success, revocation reporting,
-variant substitution, and the marketing copy contradicting the product. Remaining, in priority
-order: per-merchant final-sale rules, cron sweeps for post-charge states, races between the cron
-and user actions on unconditional status writes, and fee idempotency across a replaced fee
-mandate. Full findings are in the scratchpad, not the repo.
+Fixed already: everything that could cost a user money. Still open, in order of
+importance: smarter final-sale detection per shop, cleanup for purchases stuck in the
+post-buy stages, and two rare timing issues that only matter with many users. Details are
+in the review notes outside the repo.

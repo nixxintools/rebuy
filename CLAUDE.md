@@ -36,12 +36,20 @@ reporting a failure.
 
 ## Things that cost hours to learn
 
-- **`complete_checkout` at Shopify needs a bearer token; `create_checkout` does not.** Building
-  the cart is open to any agent that publishes a profile. Placing the order returns
-  `AuthenticationRequired`, and the token comes from a Shopify Dev Dashboard app via
-  `client_credentials` at `https://api.shopify.com/auth/access_token` (`SHOPIFY_CLIENT_ID` /
-  `SHOPIFY_CLIENT_SECRET`, unset). A fresh checkout also reports `delivery_address_required`,
-  and we never collect a shipping address — so completion needs both, not just the flag.
+- **`complete_checkout` at Shopify needs a bearer token; `create_checkout` does not.** The
+  token comes from a Dev Dashboard Catalogs API key via `client_credentials` at
+  `https://api.shopify.com/auth/access_token` (`SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET`,
+  both set). Authenticated UCP calls also require a `Shopify-Buyer-IP` header — omitting it
+  returns `AuthenticationFailed`, which looks like a bad token and is not.
+- **Agent completion is blocked at the merchants, and we proved it, August 2.** Authenticated,
+  Token tier, address supplied exactly per Shopify's documented `fulfillment.methods[]
+  .destinations[]` shape (with `line_item_ids`, via create, update and readback): the merchant
+  never echoes `fulfillment` back, `delivery_address_required` never clears, and every one of
+  twelve reachable merchants answers `requires_escalation` with `extension_interaction_required`
+  (severity `requires_buyer_input`). `context` fields ARE read — the delivery message changes —
+  so the payload isn't being ignored wholesale; the address specifically never sticks. Until
+  Shopify lifts this (their docs hint completion needs a *verified* profile trust tier, not
+  just a token), `continue_url` handoff is not our safety choice, it is the only permitted path.
 - **The `signing_keys` in our agent profile have no private half.** Nothing in the repo or the
   environment can sign with `rebuy-2026-08`. Either generate a real key or stop advertising it.
 - **Amazon cannot be used.** Passing it as `merchant_details` makes Visa refuse card

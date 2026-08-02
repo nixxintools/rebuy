@@ -151,12 +151,16 @@ export const MERCHANTS: Merchant[] = [
     id: "elevationlab", name: "Elevation Lab", domain: "www.elevationlab.com", currency: "USD", countryCode: "US",
     category: "Electronics",
     policy: {
-      windowDays: 30, windowStartsFrom: "delivery", cost: "customer_pays_shipping", feeUsd: null,
-      finalSaleRules: "Not independently verified.",
-      categoryExceptions: "Not independently verified.",
+      windowDays: 30, windowStartsFrom: "purchase", cost: "customer_pays_shipping", feeUsd: null,
+      finalSaleRules: "None stated.",
+      categoryExceptions: "None stated.",
       policyUrl: "https://www.elevationlab.com/policies/refund-policy",
-      confidence: "low", verifiedOn: VERIFIED,
-      notes: "Policy not confirmed against the merchant's own page — tracked for price watching only, never for autonomous spending.",
+      confidence: "medium", verifiedOn: "2026-08-02",
+      notes:
+        "Verified Aug 2 against the merchant's page, whose entire policy is one sentence: " +
+        "\"Not happy? Return it within 30 days.\" Window confirmed; who pays return shipping is " +
+        "unstated, so the customer-pays assumption is kept as the cautious default. Counted " +
+        "from purchase because the page names no start point.",
     },
   },
 

@@ -145,6 +145,32 @@ export default function PaymentsPage() {
         </Typography>
       </Box>
 
+      {/* Unauthorized billing is an action the user needs to take, so it leads. */}
+      {!data.billing.authorized && (
+        <Card sx={{ borderColor: "primary.main" }}>
+          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+              Set up how we get paid
+            </Typography>
+            <Typography color="text.secondary" sx={{ lineHeight: 1.7, mb: 2 }}>
+              Rebuy takes 15% of what it banks for you — never before your refund lands, and
+              <b> never more than ${data.billing.capUsd.toFixed(2)} in a month</b>, however much we
+              save you. Anything above that is waived, not carried over. Your first saving was
+              free. Authorize collection the same way you authorize spending: once, with a
+              passkey, revocable whenever you like.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={authorizeBilling}
+              disabled={authorizing}
+              sx={{ background: GRADIENT }}
+            >
+              {authorizing ? "Opening secure session…" : "Authorize fee collection"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Spend authority first — the question a user actually has */}
       <Card sx={{ borderColor: authority.activeCount ? "primary.main" : "divider" }}>
         {loading && <LinearProgress />}
@@ -261,30 +287,26 @@ export default function PaymentsPage() {
             ))}
           </Grid>
 
-          <Divider sx={{ my: 3 }} />
+          {data.billing.authorized && <Divider sx={{ my: 3 }} />}
 
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            How we get paid
-          </Typography>
-          {data.billing.authorized ? (
+          {data.billing.authorized && (
             <>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+                How we get paid
+              </Typography>
               <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                You&apos;ve authorized Rebuy to collect its share. We can never take more than{" "}
-                <b>${data.billing.capUsd.toFixed(2)} in a month</b>, whatever we save you
-                {data.billing.expiresAt
-                  ? `, expiring ${new Date(data.billing.expiresAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`
-                  : ""}
-                . We charge once a month, in arrears, and only on savings you&apos;ve banked.
+                We can never take more than{" "}
+                <b>${data.billing.capUsd.toFixed(2)} in a month</b>, whatever we save you, and
+                nothing is charged until your refund lands.
               </Typography>
               <Alert severity="info" sx={{ mt: 2 }}>
                 {data.billing.accrued.fee > 0 ? (
                   <>
-                    ${data.billing.accrued.fee.toFixed(2)} will be charged for{" "}
-                    {data.billing.accrued.period}, on ${data.billing.accrued.savings.toFixed(2)} of
-                    banked savings.
+                    ${data.billing.accrued.fee.toFixed(2)} due for {data.billing.accrued.period}, on
+                    ${data.billing.accrued.savings.toFixed(2)} of banked savings.
                   </>
                 ) : (
-                  <>Nothing to bill this month — you haven&apos;t banked any savings yet.</>
+                  <>Nothing outstanding — every banked saving has been settled.</>
                 )}
               </Alert>
               {data.billing.history.length > 0 && (
@@ -304,24 +326,6 @@ export default function PaymentsPage() {
                   ))}
                 </Stack>
               )}
-            </>
-          ) : (
-            <>
-              <Typography color="text.secondary" sx={{ lineHeight: 1.7, mb: 2 }}>
-                Rebuy takes 15% of what it banks for you — never before your refund lands, and
-                <b> never more than ${data.billing.capUsd.toFixed(2)} in a month</b>, however much we
-                save you. Anything above that is waived, not carried over. Your first saving was
-                free. Authorize collection the same way you authorize spending: once, with a
-                passkey, revocable whenever you like.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={authorizeBilling}
-                disabled={authorizing}
-                sx={{ background: GRADIENT }}
-              >
-                {authorizing ? "Opening secure session…" : "Authorize fee collection"}
-              </Button>
             </>
           )}
         </CardContent>

@@ -62,11 +62,15 @@ of guessing. If the shop takes no returns, or the item is final sale, it does no
 each purchase we write the result back, so the next decision about that shop is better
 informed.
 
-**[Scroll back up to the orange card that says the purchase is not finished. Let it sit.]**
+**[Scroll back up to the blue card that says the checkout is prepared. Let it sit, then click
+Open the prepared checkout so Anker's own cart appears with the item in it.]**
 
-There is one thing it does not do, and we say so on the screen. It has not placed the order.
-It has reserved the money and issued a single use card, and it tells me not to send the
-original back until I have actually bought the replacement.
+And it has gone one step further. It introduced itself to Anker as an agent, Anker verified
+it, and it created a real checkout there for my exact item. That cart you are looking at is
+on Anker's site, not ours. The only thing it has not done is press the final button, and that
+is on purpose: this is a sandbox card, and placing a live order at a real store with test
+money would be wrong. In production, that last step is one switch. The screen says all of
+this, and it tells me not to send the original back until the replacement is really bought.
 
 **[Switch to the merchants tab. Scroll slowly from the top down to a row marked watch only.]**
 

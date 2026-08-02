@@ -98,12 +98,16 @@ right trust primitive: merchant scope, a network-enforced ceiling, one charge an
 expiry are exactly the four things a user needs to understand before letting software
 spend for them.
 
-**Didn't.** We can't place the order at the merchant. UCP checkout needs a published
-signed agent profile, RFC 9421 request signing and the merchant accepting our credential
-as a payment handler. We probed Anker's live UCP endpoint and every documented wire format
-was rejected at handshake. So the honest end state is "money reserved, single-use card
-issued, no order yet" — and the product says that, including "don't return the original
-until you've bought the replacement."
+**Didn't, then did.** For most of the build we couldn't place the order at the merchant —
+every probe of Anker's UCP endpoint was rejected at handshake, and we shipped the honest
+state "money reserved, no order yet". In the final hours we cracked it: the agent needed a
+published profile declaring its capabilities, referenced at an exact spot in the request
+metadata. Rebuy now introduces itself to the merchant, negotiates capabilities, and creates
+a real checkout for the exact variant — verified live against Anker, with the merchant's
+card handler attached. The one call we do not make is the final submission, deliberately:
+the card is a sandbox credential, and firing a live order at a real store with test money
+would be wrong. In production that last step is a single switch (`UCP_COMPLETE_CHECKOUT`),
+and the screen tells the user exactly where automation stopped and why.
 
 **Learned.** Prava's mandate turned out to be the right primitive for the business too, not just
 the product: the same standing-authorization model that lets an agent spend under a cap also lets
@@ -115,6 +119,14 @@ can actually do. Nearly every serious bug we hit was a gap between the two: guar
 displayed that weren't enforced, a purchase claimed that never happened, a revocation
 reported that didn't complete. Building an agent that spends money is mostly building the
 evidence trail that justifies each claim you make about it.
+
+## The last mile, precisely
+
+After the Prava charge, the item page shows a checkout the agent created at the merchant
+over UCP — a real cart on the merchant's own domain, one guarded call short of a placed
+order. We block that call in sandbox on purpose and say so on screen. Judges can verify:
+our agent profile is public at rebuy.upthink.app/.well-known/ucp-agent-profile, and the
+checkout ids in the audit trail resolve at Anker.
 
 ## Disclosure
 

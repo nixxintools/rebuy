@@ -37,7 +37,8 @@ Optional, in rough value order:
 
 ## What is built and verified
 
-Five real Prava sandbox transactions: three autonomous rebuys (Anker $39.99, Allbirds $105,
+Real UCP checkouts now exist at Anker for both in-flight items (ids on the items, buttons in
+the UI). Five real Prava sandbox transactions: three autonomous rebuys (Anker $39.99, Allbirds $105,
 Taylor Stitch $228), a fourth rebuy gated by Senso (Anker $69.99,
 `txn_01KZ0K7W6YG8AW8J224SPRZ7JZ`), and one fee collection of $6.90
 (`txn_01KZ0EPJFZQ7BMRKD29V5PDAS5`). None are mocked.
@@ -74,10 +75,14 @@ where a return is impossible, which is the most persuasive thing in the product.
 
 ## Known limitations, stated deliberately
 
-- **No order is placed at the merchant.** UCP checkout needs a published signed agent profile,
-  RFC 9421 signing, and the merchant accepting a Prava credential as a payment handler. Probing
-  Anker's live UCP endpoint rejected every documented wire format at handshake. The product says
-  so on screen rather than hiding it.
+- **The final checkout submission is deliberately blocked.** The agent now creates a real
+  checkout at the merchant over UCP (`lib/ucp.ts`): published profile at
+  `/.well-known/ucp-agent-profile`, capability negotiation, exact variant, card handler.
+  `complete_checkout` is guarded behind `UCP_COMPLETE_CHECKOUT` (unset = blocked) because the
+  Prava card is a sandbox credential and a live order at a real store with test money would be
+  wrong. Production lifts the guard. The earlier "every wire format rejected" finding was our
+  own error — the profile lacked a `capabilities` section, and the profile URI belongs at
+  `params.arguments.meta["ucp-agent"].profile` on `tools/call`, never on `initialize`.
 - **Returns are not auto-filed.** The user is routed with the deadline and reason.
 - **`detectFinalSale` is keyword-based**, not per-merchant. The registry holds richer rules than
   the matcher uses. A reviewer flagged this; it will miss cases like Peak Design apparel.

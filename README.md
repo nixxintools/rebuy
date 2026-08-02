@@ -44,12 +44,13 @@ merchant policies behind it rather than a hardcoded 30 days.
 
 Worth stating plainly, because an earlier version got this wrong and it mattered.
 
-**No order is placed at the merchant.** A completed Prava charge proves a single-use card
-credential was issued. It does not prove an order exists. Completing a UCP checkout would
-additionally require a published signed agent profile, RFC 9421 request signing, and the
-merchant accepting that credential as a payment handler. So the state after a successful charge
-is `purchase_authorized` — money reserved, card issued, *no order yet* — and the interface says
-exactly that, including "don't return the original until you've bought the replacement."
+**The final order submission is deliberately blocked.** After the charge, the agent creates a
+real checkout at the merchant over UCP: published agent profile, capability negotiation, exact
+variant, the merchant's card handler attached. The one call it does not make is
+`complete_checkout`, because the Prava card is a sandbox credential and placing a live order at
+a real store with test money would be wrong. The guard is one env switch
+(`UCP_COMPLETE_CHECKOUT`); the interface says exactly where automation stopped and why,
+including "don't return the original until you've bought the replacement."
 
 An earlier build said "Repurchase complete" and offered "Open the new order" over a cart link.
 Someone who trusted that screen would have returned their only item and been left with nothing.

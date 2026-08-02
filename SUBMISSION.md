@@ -25,6 +25,9 @@ agent once with a passkey. From then on it watches the real price and, if it fal
 enough while you can still return the original, it charges your pre-approved Prava mandate
 and buys the cheaper one on its own. You return the first and keep the difference.
 
+We charge 15% of what you actually bank — your first saving is free, nothing is billed until
+your refund lands, and we can never take more than $15 in a month however much we save you.
+
 The insight underneath it: **a return window isn't red tape, it's how long your money
 stays recoverable.** Marine Layer gives a price 365 days to fall. Taylor Stitch gives it
 21. Same purchase, completely different odds — and nobody shops that way, because nobody
@@ -62,9 +65,18 @@ ones, which is the one thing a product like this cannot get wrong.
 polo as ₹8,600 while the store still reported USD. Every price the agent reads is a
 spending input, so merchants are now validated from the same US region that serves users.
 
-**Getting paid at all.** The 15% fee was multiplication on a page with no collection
-behind it. It now runs on a second Prava mandate scoped to us — monthly, capped, billed in
-arrears and only on savings the user confirms they've banked.
+**Return costs were shown everywhere and used nowhere.** The agent triggered on the gross price
+gap, the UI called that gap "saved", and billing took a share of it — so a $5 drop at a merchant
+charging $9.90 to return would fire, display a saving, and invoice a fee on what was actually a
+loss. Return cost is now captured per item and subtracted before the agent acts and before we
+bill.
+
+**Getting paid at all.** The 15% fee was multiplication on a page with no collection behind it.
+It now runs on a second Prava mandate scoped to us — the same primitive the agent spends with,
+approved by passkey and revocable the same way. Your first saving is free so nobody is asked to
+authorize payment before seeing it work; after that a further spend authorization needs a way to
+be paid. The monthly ceiling is $15 and is framed as what it is — a promise that we can never
+take more than that, with anything above it waived rather than deferred.
 
 ## Technologies used
 
@@ -93,7 +105,11 @@ was rejected at handshake. So the honest end state is "money reserved, single-us
 issued, no order yet" — and the product says that, including "don't return the original
 until you've bought the replacement."
 
-**Learned.** The hard part of agentic commerce isn't the payment — Prava makes that
+**Learned.** Prava's mandate turned out to be the right primitive for the business too, not just
+the product: the same standing-authorization model that lets an agent spend under a cap also lets
+a company collect under one, and a user who understands the first understands the second.
+
+The hard part of agentic commerce isn't the payment — Prava makes that
 genuinely easy. It's proving to the user that what the screen says matches what the agent
 can actually do. Nearly every serious bug we hit was a gap between the two: guardrails
 displayed that weren't enforced, a purchase claimed that never happened, a revocation

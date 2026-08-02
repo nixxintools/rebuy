@@ -30,6 +30,19 @@ export const DEFAULT_FEE_CAP_USD = 15;
 /** The first successful rebuy is free — we ask to be paid only after we've worked. */
 export const FREE_REBUYS = 1;
 
+/**
+ * Accounts exempt from the free-rebuy limit, set via UNLIMITED_REBUY_EMAILS.
+ * Kept in an env var rather than the source so the list isn't published, and so
+ * it can be changed without a deploy.
+ */
+function isExempt(email: string) {
+  return (process.env.UNLIMITED_REBUY_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(email.toLowerCase());
+}
+
 /** Statuses that mean a rebuy actually happened. */
 const REBOUGHT = [
   "purchase_authorized",
@@ -39,7 +52,7 @@ const REBOUGHT = [
 ];
 
 export type BillingGate =
-  | { allowed: true; reason: "within_free_allowance" | "billing_authorized" }
+  | { allowed: true; reason: "within_free_allowance" | "billing_authorized" | "exempt" }
   | { allowed: false; rebuysUsed: number; message: string };
 
 /**
@@ -53,6 +66,7 @@ export async function checkBillingGate(userId: string): Promise<BillingGate> {
     prisma.trackedItem.count({ where: { userId, status: { in: REBOUGHT } } }),
   ]);
 
+  if (isExempt(user.email)) return { allowed: true, reason: "exempt" };
   if (rebuysUsed < FREE_REBUYS) return { allowed: true, reason: "within_free_allowance" };
   if (user.feeMandateId) return { allowed: true, reason: "billing_authorized" };
 

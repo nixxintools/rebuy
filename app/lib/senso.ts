@@ -85,11 +85,19 @@ export async function verifyReturnable(
   const answer = (result.answer ?? "").trim();
   const lower = answer.toLowerCase();
 
-  // Only treat an explicit refusal as a block. An ambiguous answer falls through
-  // to the registry rules rather than silently stopping a legitimate purchase.
-  const returnBlocked =
-    /does not accept returns|no returns|cannot be returned|final sale|not returnable/.test(lower) &&
-    !/can be returned|accepts returns within/.test(lower);
+  // Only treat an explicit refusal as a block. The question is phrased "Can X
+  // be returned?", so the answer leads with its verdict — trust that, not stray
+  // keywords. An earlier keyword-only version blocked an answer that began
+  // "Yes — Anker accepts returns" because its list of exceptions contained the
+  // words "final sale": describing the policy's edge cases is not a refusal.
+  const stance = lower.replace(/^[^a-z]+/, "");
+  const saysYes = stance.startsWith("yes");
+  const saysNo = /^no\b/.test(stance);
+  const refusal =
+    /does not accept returns|no returns|cannot be returned|final sale|not returnable/.test(lower);
+  const affirmation =
+    /can be returned|accepts returns|is returnable|eligible for return/.test(lower);
+  const returnBlocked = saysNo || (refusal && !saysYes && !affirmation);
 
   return {
     source: "senso",

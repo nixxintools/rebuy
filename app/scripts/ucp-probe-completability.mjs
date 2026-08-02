@@ -20,12 +20,13 @@ const DEST = {
   address_country: "US",
 };
 
-const DOMAINS = process.env.UCP_PROBE_DOMAINS?.split(",") ?? [
-  "us.anker.com", "allbirds.com", "taylorstitch.com", "brooklinen.com",
-  "everlane.com", "rothys.com", "peakdesign.com", "cotopaxi.com",
-  "monos.com", "fellowproducts.com", "misen.com", "glossier.com",
-  "awaytravel.com", "parachutehome.com", "nomadgoods.com",
-];
+// Default to every merchant in the registry — "direct checkout" is a
+// per-merchant toggle in Shopify admin, so any one of them could have it on.
+const DOMAINS =
+  process.env.UCP_PROBE_DOMAINS?.split(",") ??
+  [...readFileSync("lib/merchant-registry.ts", "utf8").matchAll(/domain: "([^"]+)"/g)].map(
+    (m) => m[1]
+  );
 
 // Anonymous callers may be escalated for reasons that have nothing to do with
 // the merchant. Re-run this with credentials set and the same output answers a

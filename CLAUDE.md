@@ -41,15 +41,21 @@ reporting a failure.
   `https://api.shopify.com/auth/access_token` (`SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET`,
   both set). Authenticated UCP calls also require a `Shopify-Buyer-IP` header — omitting it
   returns `AuthenticationFailed`, which looks like a bad token and is not.
-- **Agent completion is blocked at the merchants, and we proved it, August 2.** Authenticated,
-  Token tier, address supplied exactly per Shopify's documented `fulfillment.methods[]
-  .destinations[]` shape (with `line_item_ids`, via create, update and readback): the merchant
-  never echoes `fulfillment` back, `delivery_address_required` never clears, and every one of
-  twelve reachable merchants answers `requires_escalation` with `extension_interaction_required`
-  (severity `requires_buyer_input`). `context` fields ARE read — the delivery message changes —
-  so the payload isn't being ignored wholesale; the address specifically never sticks. Until
-  Shopify lifts this (their docs hint completion needs a *verified* profile trust tier, not
-  just a token), `continue_url` handoff is not our safety choice, it is the only permitted path.
+- **A shipping destination without an `id` is silently dropped.** The UCP spec requires an id
+  on every destination and a `selected_destination_id` on the method. Omit either and Shopify
+  discards the address without an error, then reports `delivery_address_required` — which sent
+  us down a day-long "needs verification" dead end (Shopify's own docs examples omit the id!).
+  With both set, www.elevationlab.com reached **`ready_for_complete`** on August 2: address
+  echoed, Ground Shipping auto-selected, shipping priced into totals. Two more requirements
+  found the same day: the agent profile must *declare* `dev.ucp.shopping.fulfillment` (UCP is
+  capability-negotiated — undeclared capability fields are stripped), and authenticated calls
+  need a `Shopify-Buyer-IP` header.
+- **Most merchants still escalate regardless.** 64 of 67 registry merchants answer
+  `requires_escalation` with `extension_interaction_required` (`requires_buyer_input`) even
+  with everything above correct — merchant-side checkout extensions an agent cannot satisfy;
+  "direct checkout" is a per-merchant toggle in Shopify admin. Exceptions found:
+  www.elevationlab.com and nemoequipment.com. For the escalating majority, `continue_url`
+  handoff is the only permitted path. `scripts/ucp-probe-completability.mjs` re-runs the sweep.
 - **The `signing_keys` in our agent profile have no private half.** Nothing in the repo or the
   environment can sign with `rebuy-2026-08`. Either generate a real key or stop advertising it.
 - **Amazon cannot be used.** Passing it as `merchant_details` makes Visa refuse card

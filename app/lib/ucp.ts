@@ -84,6 +84,7 @@ export type CompletionResult =
  * response without one is a decline, however it is phrased.
  */
 export type ShippingDestination = {
+  id: string;
   first_name: string;
   last_name: string;
   street_address: string;
@@ -94,6 +95,7 @@ export type ShippingDestination = {
 };
 
 const INSTRUMENT_ID = "rebuy-prava-card";
+const DESTINATION_ID = "rebuy-dest-1";
 
 /**
  * Merchants want the name split in two. We store it as the user typed it, so
@@ -112,6 +114,11 @@ export function destinationFromUser(u: {
   const parts = u.shipName.trim().split(/\s+/);
   const last = parts.length > 1 ? parts.pop()! : "";
   return {
+    // The id is not decoration. The spec requires one on every destination and
+    // a matching selected_destination_id on the method; Shopify silently drops
+    // a destination without it, then reports the address as missing. That
+    // single omission cost a day of "verification" theories.
+    id: DESTINATION_ID,
     first_name: parts.join(" "),
     last_name: last,
     street_address: u.shipStreet,
@@ -204,7 +211,13 @@ export async function completeUcpCheckout(opts: {
               ...(opts.destination
                 ? {
                     fulfillment: {
-                      methods: [{ type: "shipping", destinations: [opts.destination] }],
+                      methods: [
+                        {
+                          type: "shipping",
+                          destinations: [opts.destination],
+                          selected_destination_id: opts.destination.id,
+                        },
+                      ],
                     },
                   }
                 : {}),
@@ -317,7 +330,13 @@ export async function createUcpCheckout(opts: {
               ...(opts.destination
                 ? {
                     fulfillment: {
-                      methods: [{ type: "shipping", destinations: [opts.destination] }],
+                      methods: [
+                        {
+                          type: "shipping",
+                          destinations: [opts.destination],
+                          selected_destination_id: opts.destination.id,
+                        },
+                      ],
                     },
                   }
                 : {}),

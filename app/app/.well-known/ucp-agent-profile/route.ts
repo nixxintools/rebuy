@@ -11,9 +11,20 @@ const PROFILE = {
       url: "https://rebuy.upthink.app",
       description: "Autonomous agent that repurchases at a lower price within a user's return window.",
     },
+    // UCP is capability-negotiated: a merchant strips any request field whose
+    // capability the agent has not declared. Fulfillment was missing here, so
+    // every shipping address we sent was silently discarded — the checkout
+    // then demanded the very address we kept supplying.
     capabilities: {
       "dev.ucp.shopping.cart": [{ version: "2026-04-08" }],
       "dev.ucp.shopping.checkout": [{ version: "2026-04-08" }],
+      "dev.ucp.shopping.fulfillment": [
+        { version: "2026-04-08", extends: ["dev.ucp.shopping.checkout", "dev.ucp.shopping.cart"] },
+      ],
+      "dev.ucp.shopping.buyer_consent": [
+        { version: "2026-04-08", extends: "dev.ucp.shopping.checkout" },
+      ],
+      "dev.ucp.shopping.order": [{ version: "2026-04-08" }],
     },
   },
   signing_keys: [

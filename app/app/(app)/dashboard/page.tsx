@@ -117,8 +117,14 @@ export default async function Dashboard() {
                       sx={{ pr: 2 }}
                       primary={i.productName}
                       secondary={
-                        <Box component="span" sx={{ display: "inline-flex", mt: 0.75 }}>
-                          <StatusChip status={i.status} />
+                        <Box component="span" sx={{ display: "block" }}>
+                          <Box component="span" sx={{ display: "block", fontSize: 13, color: "text.secondary" }}>
+                            {i.retailerName}
+                            {i.variantTitle ? ` · ${i.variantTitle}` : ""}
+                          </Box>
+                          <Box component="span" sx={{ display: "inline-flex", mt: 0.5 }}>
+                            <StatusChip status={i.status} />
+                          </Box>
                         </Box>
                       }
                       slotProps={{

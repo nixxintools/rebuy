@@ -50,6 +50,14 @@ reporting a failure.
   found the same day: the agent profile must *declare* `dev.ucp.shopping.fulfillment` (UCP is
   capability-negotiated — undeclared capability fields are stripped), and authenticated calls
   need a `Shopify-Buyer-IP` header.
+- **The decline test ran on August 2, and the API refused before touching the card.** At
+  ElevationLab, at `ready_for_complete`, `complete_checkout` with Prava's sandbox test card
+  passed schema validation (the credential wants `token`, not `number` — the merchant's
+  validator says so verbatim) and returned `checkout_completion_ineligible`: "This checkout is
+  ineligible for completion via API. Use the continue_url…" No order, no charge. The last gate
+  is the token's purchase-completion permission — Shopify's docs: completion works "when the
+  token is granted permission to complete purchases", and a Dev Dashboard Catalogs key does not
+  carry it. That permission is the one piece we cannot self-serve.
 - **Most merchants still escalate regardless.** 64 of 67 registry merchants answer
   `requires_escalation` with `extension_interaction_required` (`requires_buyer_input`) even
   with everything above correct — merchant-side checkout extensions an agent cannot satisfy;

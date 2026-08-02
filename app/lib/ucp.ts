@@ -185,10 +185,9 @@ export async function completeUcpCheckout(opts: {
             id: opts.checkoutId,
             checkout: {
               // Shopify's documented shape: a list of instruments and a
-              // pointer to the chosen one. The credential sub-object is the
-              // one piece their public docs don't spell out — once we hold a
-              // Dev Dashboard token, tools/list returns the authoritative
-              // schema for this and we should read it rather than guess again.
+              // pointer to the chosen one. The credential field names were
+              // confirmed by the merchant's own validator on Aug 2 — it
+              // carries `token`, not `number`.
               payment: {
                 instruments: [
                   {
@@ -197,7 +196,7 @@ export async function completeUcpCheckout(opts: {
                     handler_id: "shopify.card",
                     credential: {
                       type: "card",
-                      number: opts.credentials.token,
+                      token: opts.credentials.token,
                       security_code: opts.credentials.dynamicCvv,
                       expiry_month: opts.credentials.expiryMonth,
                       expiry_year: opts.credentials.expiryYear,

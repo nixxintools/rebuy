@@ -185,6 +185,8 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
     if (j?.iframeUrl) window.location.href = j.iframeUrl;
   }
 
+  const needsBilling = item.status === STATUS.billingRequired;
+
   const toneSeverity = { error: "error", warning: "warning", success: "success", active: "info", neutral: "info" } as const;
 
   return (
@@ -325,6 +327,21 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
               </Button>
             )}
 
+            {needsBilling && (
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <Button
+                  variant="contained"
+                  href="/payments"
+                  sx={{ background: GRADIENT }}
+                >
+                  Set up billing
+                </Button>
+                <Button href="/merchants" sx={{ color: "text.secondary" }}>
+                  How our fee works
+                </Button>
+              </Stack>
+            )}
+
             {item.status === STATUS.chargeFailed && (
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <Button
@@ -355,6 +372,15 @@ export default function ItemPage({ params }: { params: Promise<{ id: string }> }
           )}
         </CardContent>
       </Card>
+
+      {needsBilling && (
+        <Alert severity="info">
+          <AlertTitle>Your first saving was on us</AlertTitle>
+          Rebuy already banked you a saving for free. To keep it working, authorize how we get
+          paid: 15% of what you actually bank, capped at $15 a month no matter how much we save
+          you. Nothing is charged until a refund lands.
+        </Alert>
+      )}
 
       {banked && (
         <Alert severity="success">

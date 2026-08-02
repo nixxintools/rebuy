@@ -20,8 +20,50 @@ export const FEE_MERCHANT = {
   countryCode: "US",
 };
 
-/** Default monthly ceiling shown to the user when they approve fee collection. */
-export const DEFAULT_FEE_CAP_USD = 50;
+/**
+ * The most we can ever take in a month, whatever we save you. This is a promise
+ * to the user, not an accounting limit: anything above it is WAIVED, not carried
+ * into next month. Save someone $400 and our share is $15, not $60.
+ */
+export const DEFAULT_FEE_CAP_USD = 15;
+
+/** The first successful rebuy is free — we ask to be paid only after we've worked. */
+export const FREE_REBUYS = 1;
+
+/** Statuses that mean a rebuy actually happened. */
+const REBOUGHT = [
+  "purchase_authorized",
+  "order_placed",
+  "return_started",
+  "refund_confirmed",
+];
+
+export type BillingGate =
+  | { allowed: true; reason: "within_free_allowance" | "billing_authorized" }
+  | { allowed: false; rebuysUsed: number; message: string };
+
+/**
+ * Whether the agent may spend for this user again. The first rebuy is free so
+ * nobody is asked to authorize payment before seeing the product work; after
+ * that we need a way to be paid, or we'd be doing the work indefinitely for free.
+ */
+export async function checkBillingGate(userId: string): Promise<BillingGate> {
+  const [user, rebuysUsed] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+    prisma.trackedItem.count({ where: { userId, status: { in: REBOUGHT } } }),
+  ]);
+
+  if (rebuysUsed < FREE_REBUYS) return { allowed: true, reason: "within_free_allowance" };
+  if (user.feeMandateId) return { allowed: true, reason: "billing_authorized" };
+
+  return {
+    allowed: false,
+    rebuysUsed,
+    message:
+      "Your first saving was on us. To keep going, authorize how we get paid — 15% of what you " +
+      `actually bank, never more than $${DEFAULT_FEE_CAP_USD} a month.`,
+  };
+}
 
 export function currentPeriod(now = new Date()) {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -88,6 +130,8 @@ export async function billUser(userId: string, period = currentPeriod()): Promis
     const accrued = await accruedFees(userId, period);
     if (accrued.fee <= 0) return { ok: true, skipped: "nothing_to_bill" };
 
+    // The cap is a guarantee to the user, so anything above it is waived rather
+    // than deferred to a later period.
     const cap = Number(user.feeMandateCapUsd ?? DEFAULT_FEE_CAP_USD);
     amount = Math.min(accrued.fee, cap);
     record = await prisma.feeCharge.create({

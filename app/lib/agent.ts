@@ -9,6 +9,7 @@ import { prisma } from "./prisma";
 import { chargeMandate, reportCharge, getMandate, PravaError } from "./prava";
 import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
+import { checkBillingGate } from "./billing";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -80,6 +81,25 @@ export async function executeRebuy(itemId: string) {
   const item = await prisma.trackedItem.findUniqueOrThrow({ where: { id: itemId } });
   if (item.status !== STATUS.dropDetected || !item.mandateId) return null;
   const amount = Number(item.currentPrice).toFixed(2);
+
+  // Backstop for authorizations granted before the free allowance ran out.
+  if (item.userId) {
+    const gate = await checkBillingGate(item.userId);
+    if (!gate.allowed) {
+      await prisma.trackedItem.update({
+        where: { id: itemId },
+        data: { status: STATUS.billingRequired, failureCode: "BILLING_NOT_AUTHORIZED" },
+      });
+      await prisma.agentEvent.create({
+        data: {
+          itemId,
+          type: "billing_required",
+          detail: { rebuysUsed: gate.rebuysUsed, priceAtBlock: amount },
+        },
+      });
+      return { ok: false, code: "BILLING_NOT_AUTHORIZED" };
+    }
+  }
 
   // Never spend against an authorization that isn't the one shown to the user.
   // Prava enforces scope and ceiling too, but a mismatch means our own interface

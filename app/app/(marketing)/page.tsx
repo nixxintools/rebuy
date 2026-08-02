@@ -150,7 +150,7 @@ export default function Landing() {
             </Button>
           </Stack>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
-            Free to start · Nothing charged unless it saves you money
+            First saving free · 15% after that · never more than $15 a month
           </Typography>
         </Container>
       </Box>
@@ -341,8 +341,8 @@ export default function Landing() {
             Stop leaving money with the store
           </Typography>
           <Typography sx={{ mt: 2, fontSize: "1.1rem", opacity: 0.92, maxWidth: 560, mx: "auto" }}>
-            Track your first purchase in under a minute. We take 15% only of savings you&apos;ve
-            actually banked — never before your refund lands.
+            Your first saving is free. After that we take 15% of what you actually bank — never
+            before your refund lands, and never more than $15 in a month, however much we save you.
           </Typography>
           <LinkButton
             href="/login"

@@ -269,8 +269,8 @@ export default function PaymentsPage() {
           {data.billing.authorized ? (
             <>
               <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                You&apos;ve authorized Rebuy to collect its share, capped at{" "}
-                <b>${data.billing.capUsd.toFixed(2)} a month</b>
+                You&apos;ve authorized Rebuy to collect its share. We can never take more than{" "}
+                <b>${data.billing.capUsd.toFixed(2)} in a month</b>, whatever we save you
                 {data.billing.expiresAt
                   ? `, expiring ${new Date(data.billing.expiresAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`
                   : ""}
@@ -308,9 +308,11 @@ export default function PaymentsPage() {
           ) : (
             <>
               <Typography color="text.secondary" sx={{ lineHeight: 1.7, mb: 2 }}>
-                Rebuy takes 15% of what it saves you — but only once your refund has landed and the
-                saving is real. Authorize collection the same way you authorize spending: once, with
-                a passkey, under a monthly ceiling you can revoke at any time.
+                Rebuy takes 15% of what it banks for you — never before your refund lands, and
+                <b> never more than ${data.billing.capUsd.toFixed(2)} in a month</b>, however much we
+                save you. Anything above that is waived, not carried over. Your first saving was
+                free. Authorize collection the same way you authorize spending: once, with a
+                passkey, revocable whenever you like.
               </Typography>
               <Button
                 variant="contained"

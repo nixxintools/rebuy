@@ -23,6 +23,8 @@ export const STATUS = {
   expired: "expired",
   /** Tracked for price history only — merchant isn't safe to spend at. */
   watchOnly: "watch_only",
+  /** Free allowance used and no way to be paid — the agent will not spend. */
+  billingRequired: "billing_required",
 } as const;
 
 export type ItemStatus = (typeof STATUS)[keyof typeof STATUS];
@@ -130,6 +132,14 @@ export const STATUS_META: Record<string, StatusMeta> = {
     meaning: "The deadline passed without a qualifying price drop.",
     action: null,
     tone: "neutral",
+    agentCanSpend: false,
+  },
+  [STATUS.billingRequired]: {
+    label: "Set up billing to continue",
+    meaning:
+      "Your first saving was free. Before Rebuy spends for you again, it needs a way to be paid.",
+    action: "Authorize fee collection on the Payments page.",
+    tone: "warning",
     agentCanSpend: false,
   },
   [STATUS.watchOnly]: {

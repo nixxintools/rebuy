@@ -18,9 +18,9 @@ called out jargon-heavy updates twice and made this a standing rule.
 
 Three things. All three need Nikhil, not an AI.
 
-1. **Record the demo video.** The full script, with what to click and what to say, is in
-   [VIDEO-SCRIPT.md](VIDEO-SCRIPT.md). It includes the receipt to paste and the test card
-   to use. Nothing is blocking this.
+1. **Record the demo video.** Three minutes. The script is deliberately not in this repo any
+   more — if you need it back, the last version is in git history:
+   `git show 29836a1:VIDEO-SCRIPT.md`.
 2. **Take five screenshots.** The list is at the bottom of [SUBMISSION.md](SUBMISSION.md).
    The first one becomes the cover image on Devfolio, so it should be the page that shows
    the agent bought something and prepared the cart at Anker. For the project logo on

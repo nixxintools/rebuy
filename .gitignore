@@ -21,3 +21,6 @@ build/
 .DS_Store
 *.pem
 *.tsbuildinfo
+
+# generated Senso corpus (rebuilt from the registry)
+app/.senso-corpus/

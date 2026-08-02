@@ -69,6 +69,8 @@ const EVENT_COPY: Record<string, string> = {
   mandate_setup_session_created: "Secure authorization session opened",
   mandate_active: "You approved the agent — authorization active",
   drop_detected: "Price drop detected inside the return window",
+  senso_policy_check: "Checked the merchant's verified return policy before spending",
+  senso_outcome_recorded: "Recorded the outcome so future decisions are better informed",
   rebuy_started: "Agent started the repurchase",
   mandate_charge: "Charged your authorization and issued a single-use card",
   charge_reported: "Charge outcome reported to the card network",

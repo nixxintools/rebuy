@@ -10,6 +10,7 @@ import { chargeMandate, reportCharge, getMandate, PravaError } from "./prava";
 import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
+import { verifyReturnable, recordOutcome, sensoConfigured } from "./senso";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -98,6 +99,34 @@ export async function executeRebuy(itemId: string) {
         },
       });
       return { ok: false, code: "BILLING_NOT_AUTHORIZED" };
+    }
+  }
+
+  // Before spending, confirm with verified merchant knowledge that the original
+  // could actually be sent back. The registry says the same thing, but Senso
+  // returns the answer with its source attached, so the decision can be shown to
+  // the user rather than asserted.
+  if (sensoConfigured()) {
+    const verdict = await verifyReturnable(item.retailerName, item.productName);
+    await prisma.agentEvent.create({
+      data: {
+        itemId,
+        type: "senso_policy_check",
+        detail: JSON.parse(JSON.stringify({
+          source: verdict.source,
+          answer: verdict.answer,
+          citations: verdict.citations,
+          returnBlocked: verdict.returnBlocked,
+          unavailableReason: verdict.unavailableReason ?? null,
+        })),
+      },
+    });
+    if (verdict.returnBlocked) {
+      await prisma.trackedItem.update({
+        where: { id: itemId },
+        data: { status: STATUS.watchOnly, failureCode: "RETURN_NOT_POSSIBLE" },
+      });
+      return { ok: false, code: "RETURN_NOT_POSSIBLE" };
     }
   }
 
@@ -218,6 +247,25 @@ export async function executeRebuy(itemId: string) {
       },
     },
   });
+  // Write the result back so the next decision about this merchant is informed
+  // by what actually happened, not only by the published policy.
+  if (sensoConfigured()) {
+    const returnCost = Number(item.returnCostUsd);
+    const fed = await recordOutcome({
+      merchantName: item.retailerName,
+      productTitle: item.productName,
+      paidUsd: Number(item.purchasePrice),
+      rebuyUsd: Number(amount),
+      returnCostUsd: returnCost,
+      netSavingUsd: Number(item.purchasePrice) - Number(amount) - returnCost,
+      transactionId: transactionId!,
+      status: "purchase_authorized",
+    });
+    await prisma.agentEvent.create({
+      data: { itemId, type: "senso_outcome_recorded", detail: JSON.parse(JSON.stringify(fed)) },
+    });
+  }
+
   return { ok: true, transactionId };
 }
 

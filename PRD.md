@@ -119,8 +119,11 @@ under caps the user controls.
 | **Prava finalists** | Prava is load-bearing twice: the mandate is the trust model and the autonomous charge is the core action, and a second mandate collects our revenue. Without standing authorization there is no product. |
 | **OpenAI** | GPT-4o turns unstructured receipts into tracked purchases with confidence scoring and human correction. |
 | **Visa Intelligent Commerce** | The mandate maps onto Visa's controls story exactly: scoped credential, network-enforced cap, expiry, revocation, biometric setup — all surfaced in the UI. |
-| **Senso (discovery & trust)** | Verified merchant context materially changes which merchants the agent will transact with. 67 policies with sources and dates decide where it may spend at all. |
 | **Localhost (startup-ready)** | Working billing, aligned incentives, a real distribution wedge in the merchant ranking. |
+
+**Not claimed:** the Senso track. Our merchant registry does something Senso-shaped — verified
+context deciding which merchants an agent may transact with — but we built it ourselves and never
+integrated Senso, so the track doesn't apply.
 
 ## 10. Disclosure
 

@@ -1,95 +1,109 @@
-# Rebuy — demo script
+# Rebuy — demo script (3 minutes)
 
-Roughly 3 minutes. Stage directions in brackets, spoken words in plain text.
+About 355 spoken words, which is roughly two and a half minutes of talking. The rest is
+silence while things happen on screen. Stage directions in brackets, spoken words in plain
+text.
+
+Say the words as written. If you go off script you will overrun — the old eight-minute
+version is in git history if you ever want it back.
 
 ---
 
+### 0:00 — the problem
+
 **[Start on rebuy.upthink.app/add, nothing typed yet.]**
 
-If you buy something online and the price drops a week later, the shop keeps the difference.
-You can get it back by returning the item and buying it again at the lower price, but that
-takes an evening, so most people never bother.
+Buy something online, and if the price drops next week, the shop keeps the difference. You
+can get it back — return it, buy it again cheaper — but that's an evening's work, so nobody
+does it.
 
-**[Pick Anker from the shop dropdown. Pause a beat so the "30 day return window" text is visible.]**
+**[Pick Anker from the shop dropdown.]**
 
 Rebuy does it for you.
 
-**[Paste the receipt. Click Read receipt.]**
+### 0:20 — the receipt
 
-I paste in my order confirmation, and GPT-4o from OpenAI reads it.
+**[Paste the receipt. Click Read receipt. Let the fields appear. Then click the Anker MagGo
+Power Bank 10K and choose a version.]**
 
-**[Once the fields appear, move the cursor across the amber-flagged fields.]**
+I paste in my order confirmation. OpenAI's model reads it — what I bought, what I paid, and
+the date I have to return it by. Then I pick exactly the version I bought, because buying me
+the wrong one isn't a saving.
 
-It pulls out what I bought, what I paid, and the date I have to return it by. The ones it
-marked in amber are the ones it was less sure about, so I can correct them.
+### 0:45 — permission to spend
 
-**[Scroll to the product matches. Click Anker MagGo Power Bank 10K. Then open the variant
-dropdown and choose one.]**
+**[Click Save this purchase, land on the item page. Slow down. Point at each limit as you say
+it.]**
 
-Then I pick exactly what I bought, right down to the version, because buying me the wrong
-one would not be a saving.
+Now the part that has to be right: giving software permission to spend my money. This is
+Prava. One shop. Never more than I already paid. Works once. Expires on its own.
 
-**[Click Save this purchase. Land on the item page.]**
-
-**[Slow down here. Point at each of the four guardrail lines as you say them.]**
-
-Now I have to give software permission to spend my money, which is the part that has to be
-right. This is Prava. The permission covers this one shop. It can never go above what I
-already paid. It works once. And it expires on its own.
-
-**[Click Approve with Prava. Card details, then the passkey prompt. Stop talking while the
-passkey dialog is up.]**
+**[Click Approve with Prava. Card details, then the passkey. Stop talking while the passkey
+dialog is up.]**
 
 I approve it with my fingerprint. Those limits are held by Visa at the card network, so even
-if our own code went wrong, it could not spend more than that.
+if our own code went wrong, it couldn't spend more than that.
 
-**[Back on the item page. Click Check the price now. Take your hands off the keyboard while
-it runs.]**
+### 1:20 — the agent acts
 
-Now it checks the real price at the shop. I am not involved in this next part at all.
+**[Click Check the price now. Take your hands off the keyboard. Let it run in silence.]**
 
-**[When the page updates, stay still and let the new card sit on screen.]**
+From here I'm not involved.
 
-It found the drop and it bought.
+**[When the page updates, let the new card sit on screen for a beat.]**
 
-**[Expand the Activity list. Scroll to the entry that says it checked the merchant's verified
-return policy, and expand it so the cited document is visible.]**
+It found the drop. Before spending anything, it checked whether I could actually return the
+original — that runs through Senso, which holds the real return policies of sixty-seven
+shops, so the agent gets an answer with its source attached instead of guessing. Then it
+charged the permission I gave it, introduced itself to Anker as an agent, and built a real
+cart there for my exact item.
 
-Before it spent anything, it checked whether I could actually return the original. That check
-runs through Senso. We loaded the real return policy from sixty-seven shops as verified
-knowledge, so the agent asks the question and gets an answer with the source attached instead
-of guessing. If the shop takes no returns, or the item is final sale, it does not buy. After
-each purchase we write the result back, so the next decision about that shop is better
-informed.
+**[Click Open the prepared checkout. Let Anker's own cart fill the screen.]**
 
-**[Scroll back up to the blue card that says the checkout is prepared. Let it sit, then click
-Open the prepared checkout so Anker's own cart appears with the item in it.]**
+That cart is on Anker's site, not ours.
 
-And it has gone one step further. It introduced itself to Anker as an agent, Anker verified
-it, and it created a real checkout there for my exact item. That cart you are looking at is
-on Anker's site, not ours. The only thing it has not done is press the final button, and that
-is on purpose: this is a sandbox card, and placing a live order at a real store with test
-money would be wrong. In production, that last step is one switch. The screen says all of
-this, and it tells me not to send the original back until the replacement is really bought.
+### 2:05 — the stop
 
-**[Switch to the merchants tab. Scroll slowly from the top down to a row marked watch only.]**
+**[Switch back to the item page. Rest on the status card.]**
 
-The return window turned out to be the most interesting part of this. It tells you how long
-your money can still come back. This shop gives you a full year. That one gives you three
-weeks. And where a shop takes no returns at all, we will watch the price for you, but we will
-not buy, because a purchase you cannot undo is not a saving.
+And then it stopped. It has not placed the order — and it doesn't tell me it has. A card
+exists; an order doesn't. Pressing that last button is deliberately switched off, because
+this is a sandbox card and placing a live order at a real shop with test money would be
+wrong. In production it's one setting.
 
-**[Switch to the payments tab. Point at the fee authorization and the charge in the history.]**
+### 2:30 — when it refuses
 
-We take fifteen percent of what you actually keep. The first saving is free, nothing is
-charged until your refund arrives, and we never take more than fifteen dollars in a month. We
-collect that through Prava as well, under a limit you set and can cancel whenever you want.
+**[Open the Brooklinen item, the final-sale one.]**
 
-**[Stay on payments, or cut to the dashboard. Final line.]**
+It also knows when not to spend. This one is final sale. The price dropped and it refused,
+because a purchase you can't undo isn't a saving.
 
-One last thing. The worst bug we shipped was a screen that told people a purchase was
-complete when it was not. We found it by having OpenAI's Codex read our own code back to us,
-and we fixed it before anyone relied on it.
+### 2:45 — how we get paid, and close
+
+**[Switch to the payments tab.]**
+
+We take fifteen percent of what you actually keep. First saving free, nothing charged until
+your refund lands, never more than fifteen dollars in a month.
+
+**[Hold on the dashboard for the last line.]**
+
+An agent that spends your money should tell you exactly what it did — and exactly what it
+didn't.
+
+---
+
+## Optional: only if texting is switched on
+
+If `LINQ_API_KEY` and `LINQ_WEBHOOK_SECRET` are live before you record, add this at 2:05,
+right after "That cart is on Anker's site, not ours." It costs about twelve seconds, so trim
+the fee paragraph to one sentence to stay inside three minutes.
+
+**[Hold up your phone with the text on screen.]**
+
+And it told me. It texted me the moment it spent — that a card exists, that nothing has been
+ordered yet, and what's still mine to do.
+
+**If the text hasn't actually arrived on your phone, cut this. Do not describe it.**
 
 ---
 
@@ -99,6 +113,14 @@ and we fixed it before anyone relied on it.
 - Receipt text and card details in a notepad off screen.
 - Browser at 100%, notifications off.
 - Card `4622 9431 2313 7896`, CVV `499`, expiry `12/27`, OTP `456789`.
+- Do a silent dry run first. The two places that eat time are the passkey dialog and the
+  price check — know how long they take so you're not filling the gap with words.
+
+## What got cut, in case you miss it
+
+The receipt-parsing detail, the tour of all sixty-seven shops, and the story about the bug
+we found with Codex. All three are in SUBMISSION.md, which the judges read. The video only
+has room for the thing they can't get from text: watching it spend, and watching it stop.
 
 ## Receipt to paste
 
@@ -120,5 +142,5 @@ Delivered: July 28, 2026
 Returns: eligible for return through August 27, 2026
 ```
 
-If Prava returns an error mid take, that is the sandbox outage from earlier coming back. Wait a
-minute and retry.
+If Prava returns an error mid take, that is the sandbox outage from earlier coming back. Wait
+a minute and retry.

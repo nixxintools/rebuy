@@ -6,7 +6,7 @@
 // prove an order exists at the merchant, so it never claims one.
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
-import { chargeMandate, reportCharge, getMandate, PravaError } from "./prava";
+import { chargeMandate, reportCharge, getMandate, PravaError, redactForAudit } from "./prava";
 import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
@@ -214,7 +214,9 @@ export async function executeRebuy(itemId: string) {
       data: { status: STATUS.chargeFailed, failureCode: code },
     });
     await prisma.agentEvent.create({
-      data: { itemId, type: "rebuy_failed", detail: JSON.parse(JSON.stringify(charge)) },
+      // A charge can fail after the card was issued, so this response can carry
+      // credentials too — redact before it reaches the audit trail.
+      data: { itemId, type: "rebuy_failed", detail: JSON.parse(JSON.stringify(redactForAudit(charge))) },
     });
     await notifyChargeFailed(item, code);
     return { ok: false, code };

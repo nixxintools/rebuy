@@ -15,6 +15,31 @@ export class PravaError extends Error {
   }
 }
 
+/**
+ * Card credentials must never reach the database. A successful charge returns
+ * the issued card — token, dynamic CVV and expiry — and the audit trail was
+ * storing that response whole. In sandbox that is fake money; in production it
+ * would be live card credentials sitting in plaintext in our own tables, which
+ * is the one mistake there is no recovering from.
+ *
+ * Only the audit copy is redacted. The caller still receives the real response,
+ * because the charge itself needs it.
+ */
+const SECRET_KEYS = /^(credentials|dynamicdata|token|cvv|dynamiccvv|pan|cardnumber|card_number|expiry(month|year)?)$/i;
+
+export function redactForAudit(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactForAudit);
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      // Keep the key so the trail still shows a card was issued, drop the value.
+      out[k] = SECRET_KEYS.test(k) ? "[redacted]" : redactForAudit(v);
+    }
+    return out;
+  }
+  return value;
+}
+
 async function pravaFetch(
   path: string,
   init: RequestInit & { itemId?: string; eventType?: string } = {}
@@ -43,7 +68,7 @@ async function pravaFetch(
         itemId,
         type: eventType ?? `prava:${path}`,
         detail: JSON.parse(
-          JSON.stringify({ path, status: res.status, responseId, body })
+          JSON.stringify(redactForAudit({ path, status: res.status, responseId, body }))
         ),
       },
     });

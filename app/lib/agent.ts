@@ -11,8 +11,13 @@ import { fetchProduct, MerchantUnavailableError } from "./merchants";
 import { STATUS } from "./status";
 import { checkBillingGate } from "./billing";
 import { verifyReturnable, recordOutcome, sensoConfigured } from "./senso";
-import { createUcpCheckout } from "./ucp";
-import { notifyPurchaseAuthorized, notifyChargeFailed, notifyReturnBlocked } from "./notify";
+import { createUcpCheckout, completeUcpCheckout, COMPLETE_CHECKOUT_ENABLED } from "./ucp";
+import {
+  notifyPurchaseAuthorized,
+  notifyOrderPlaced,
+  notifyChargeFailed,
+  notifyReturnBlocked,
+} from "./notify";
 
 const MIN_DROP_DOLLARS = 1;
 const MIN_DROP_PCT = 0.02;
@@ -222,10 +227,15 @@ export async function executeRebuy(itemId: string) {
     return { ok: false, code };
   }
 
-  try {
-    await reportCharge(item.mandateId, transactionId!, itemId);
-  } catch {
-    // A failed report must never lose a completed charge; the audit trail has it.
+  // Prava wants the outcome of using the card at the merchant. When completion
+  // is switched on we genuinely know that outcome, so the report waits until
+  // after the attempt. With completion off, behaviour is unchanged.
+  if (!COMPLETE_CHECKOUT_ENABLED) {
+    try {
+      await reportCharge(item.mandateId, transactionId!, itemId);
+    } catch {
+      // A failed report must never lose a completed charge; the audit trail has it.
+    }
   }
 
   // Money is committed and a single-use card exists. No order has been placed at
@@ -271,6 +281,45 @@ export async function executeRebuy(itemId: string) {
         where: { id: itemId },
         data: { ucpCheckoutId: ucp.checkoutId, ucpContinueUrl: ucp.continueUrl },
       });
+
+      // The last step. Only runs when UCP_COMPLETE_CHECKOUT is on, and only
+      // ever moves the item to "ordered" if the merchant returns an order id.
+      if (COMPLETE_CHECKOUT_ENABLED) {
+        const done = await completeUcpCheckout({
+          endpoint: ucp.endpoint,
+          checkoutId: ucp.checkoutId,
+          credentials: (charge.credentials ?? {}) as Record<string, string>,
+          idempotencyKey: reference,
+        });
+        await prisma.agentEvent.create({
+          data: {
+            itemId,
+            type: done.ok ? "ucp_order_placed" : "ucp_completion_declined",
+            detail: JSON.parse(JSON.stringify(redactForAudit(done))),
+          },
+        });
+
+        if (done.ok) {
+          await prisma.trackedItem.update({
+            where: { id: itemId },
+            data: { status: STATUS.orderPlaced, merchantOrderRef: done.orderId },
+          });
+        }
+
+        // Tell Prava what actually happened at the merchant, either way. Saying
+        // a card was approved when the shop refused it corrupts their
+        // reconciliation and ours.
+        try {
+          await reportCharge(
+            item.mandateId,
+            transactionId!,
+            itemId,
+            done.ok ? "APPROVED" : "DECLINED"
+          );
+        } catch {
+          // The audit trail still holds the outcome.
+        }
+      }
     }
   }
 
@@ -278,7 +327,16 @@ export async function executeRebuy(itemId: string) {
   // prepared so that the link in the message lands on a page that can already
   // hand them the cart. `item` predates the charge, so pass the price we
   // actually charged rather than its stale null.
-  await notifyPurchaseAuthorized({ ...item, rebuyPrice: amount });
+  //
+  // Read the state back rather than assuming it: if completion ran and an order
+  // really was placed, telling them "nothing has been ordered yet" would be the
+  // exact lie this codebase exists to avoid.
+  const settled = await prisma.trackedItem.findUniqueOrThrow({ where: { id: itemId } });
+  if (settled.status === STATUS.orderPlaced && settled.merchantOrderRef) {
+    await notifyOrderPlaced({ ...item, rebuyPrice: amount }, settled.merchantOrderRef);
+  } else {
+    await notifyPurchaseAuthorized({ ...item, rebuyPrice: amount });
+  }
 
   // Write the result back so the next decision about this merchant is informed
   // by what actually happened, not only by the published policy.

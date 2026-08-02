@@ -246,13 +246,14 @@ export async function chargeMandate(
 export async function reportCharge(
   mandateId: string,
   transactionId: string,
-  itemId: string | null
+  itemId: string | null,
+  txnStatus: "APPROVED" | "DECLINED" = "APPROVED"
 ) {
   return pravaFetch(`/v1/mandates/${mandateId}/charges/${transactionId}/report`, {
     method: "POST",
     itemId: itemId ?? undefined,
     eventType: "charge_reported",
-    body: JSON.stringify({ txn_status: "APPROVED", txn_type: "PURCHASE" }),
+    body: JSON.stringify({ txn_status: txnStatus, txn_type: "PURCHASE" }),
   });
 }
 

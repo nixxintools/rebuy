@@ -40,6 +40,165 @@ export async function discoverUcpEndpoint(domain: string): Promise<string | null
   }
 }
 
+/**
+ * Shopify requires a bearer token for complete_checkout — creating a checkout
+ * is open, placing the order is not. The token is fetched per run because it
+ * expires after an hour.
+ */
+async function shopifyAgentToken(): Promise<string | null> {
+  const id = process.env.SHOPIFY_CLIENT_ID;
+  const secret = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!id || !secret) return null;
+  try {
+    const res = await fetch("https://api.shopify.com/auth/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grant_type: "client_credentials",
+        client_id: id,
+        client_secret: secret,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { access_token?: string };
+    return body.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export type CompletionResult =
+  | { ok: true; orderId: string; permalinkUrl: string | null }
+  | { ok: false; stage: "disabled" | "no_token" | "transport" | "merchant"; code: string; message: string };
+
+/**
+ * The last call — the one that turns a prepared cart into an order.
+ *
+ * It is off unless UCP_COMPLETE_CHECKOUT is "true", and it must stay that way
+ * while the Prava card is a sandbox credential: a real order at a real shop
+ * paid for with test money is someone else's problem to unpick.
+ *
+ * Card details are passed to the merchant and never returned, logged or stored.
+ * Success is only reported when the merchant hands back an order id — a
+ * response without one is a decline, however it is phrased.
+ */
+export async function completeUcpCheckout(opts: {
+  endpoint: string;
+  checkoutId: string;
+  credentials: { token?: string; dynamicCvv?: string; expiryMonth?: string; expiryYear?: string };
+  idempotencyKey: string;
+}): Promise<CompletionResult> {
+  if (!COMPLETE_CHECKOUT_ENABLED) {
+    return { ok: false, stage: "disabled", code: "COMPLETION_DISABLED", message: "Completion is switched off." };
+  }
+
+  const bearer = await shopifyAgentToken();
+  if (!bearer) {
+    return {
+      ok: false,
+      stage: "no_token",
+      code: "AUTHENTICATION_REQUIRED",
+      message:
+        "Shopify requires an agent bearer token to place an order. Set SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET.",
+    };
+  }
+
+  let rpc: {
+    result?: { content?: { type: string; text: string }[] };
+    error?: { code?: number; message?: string; data?: unknown };
+  };
+  try {
+    const res = await fetch(opts.endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${bearer}`,
+      },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "tools/call",
+        id: 1,
+        params: {
+          name: "complete_checkout",
+          arguments: {
+            meta: {
+              "ucp-agent": { profile: AGENT_PROFILE },
+              "idempotency-key": opts.idempotencyKey,
+            },
+            id: opts.checkoutId,
+            checkout: {
+              payment: {
+                selected_handler_id: "shopify.card",
+                instrument: { type: "card" },
+                credential: {
+                  type: "card",
+                  number: opts.credentials.token,
+                  security_code: opts.credentials.dynamicCvv,
+                  expiry_month: opts.credentials.expiryMonth,
+                  expiry_year: opts.credentials.expiryYear,
+                },
+              },
+            },
+          },
+        },
+      }),
+    });
+    const text = await res.text();
+    try {
+      rpc = JSON.parse(text);
+    } catch {
+      const frame = text.split("\n").find((l) => l.startsWith("data:"));
+      if (!frame) {
+        return { ok: false, stage: "transport", code: String(res.status), message: text.slice(0, 300) };
+      }
+      rpc = JSON.parse(frame.slice(5).trim());
+    }
+  } catch (e) {
+    return { ok: false, stage: "transport", code: "NETWORK", message: (e as Error).message };
+  }
+
+  if (rpc.error) {
+    return {
+      ok: false,
+      stage: "merchant",
+      code: rpc.error.message ?? "RPC_ERROR",
+      message: typeof rpc.error.data === "string" ? rpc.error.data : JSON.stringify(rpc.error.data ?? {}),
+    };
+  }
+
+  const text = rpc.result?.content?.find((c) => c.type === "text")?.text;
+  if (!text) {
+    return { ok: false, stage: "merchant", code: "EMPTY_RESULT", message: "No content in the response." };
+  }
+
+  const checkout = JSON.parse(text) as {
+    status?: string;
+    order?: { id?: string; permalink_url?: string };
+    messages?: { code?: string; content?: string; severity?: string }[];
+  };
+
+  // An order id is the only thing that proves an order exists. Everything else
+  // — including a cheerful status with no order attached — is a decline.
+  if (checkout.order?.id) {
+    return {
+      ok: true,
+      orderId: checkout.order.id,
+      permalinkUrl: checkout.order.permalink_url ?? null,
+    };
+  }
+
+  const first = checkout.messages?.[0];
+  return {
+    ok: false,
+    stage: "merchant",
+    code: first?.code ?? checkout.status ?? "NO_ORDER",
+    message: (checkout.messages ?? []).map((m) => `${m.code}: ${m.content}`).join(" | ").slice(0, 500),
+  };
+}
+
 export type UcpCheckout = {
   checkoutId: string;
   continueUrl: string | null;

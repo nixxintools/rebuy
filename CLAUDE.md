@@ -36,6 +36,14 @@ reporting a failure.
 
 ## Things that cost hours to learn
 
+- **`complete_checkout` at Shopify needs a bearer token; `create_checkout` does not.** Building
+  the cart is open to any agent that publishes a profile. Placing the order returns
+  `AuthenticationRequired`, and the token comes from a Shopify Dev Dashboard app via
+  `client_credentials` at `https://api.shopify.com/auth/access_token` (`SHOPIFY_CLIENT_ID` /
+  `SHOPIFY_CLIENT_SECRET`, unset). A fresh checkout also reports `delivery_address_required`,
+  and we never collect a shipping address — so completion needs both, not just the flag.
+- **The `signing_keys` in our agent profile have no private half.** Nothing in the repo or the
+  environment can sign with `rebuy-2026-08`. Either generate a real key or stop advertising it.
 - **Amazon cannot be used.** Passing it as `merchant_details` makes Visa refuse card
   verification before the OTP screen renders.
 - **Shopify localises prices by caller region.** Probing from outside the US read an $88 item

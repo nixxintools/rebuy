@@ -142,6 +142,26 @@ export async function notifyPurchaseAuthorized(item: NotifiableItem) {
   });
 }
 
+/**
+ * Only reachable when completion is switched on and the merchant returned an
+ * order id. Without that id this message must never be sent.
+ */
+export async function notifyOrderPlaced(item: NotifiableItem, orderRef: string) {
+  const text =
+    `${item.retailerName} dropped ${item.productName} to ${usd(item.rebuyPrice ?? item.currentPrice)} ` +
+    `and I placed the order — reference ${orderRef}.\n\n` +
+    `Now send the original back by ${shortDate(item.returnDeadline)}. ` +
+    `You keep ${usd(netSaving(item as never))} once the refund lands.`;
+
+  await notifyOnce({
+    itemId: item.id,
+    userId: item.userId,
+    kind: "order_placed",
+    text,
+    link: itemUrl(item.id),
+  });
+}
+
 /** The drop was real, the payment was not. Say so rather than going quiet. */
 export async function notifyChargeFailed(item: NotifiableItem, code: string) {
   const text =
